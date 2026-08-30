@@ -15,6 +15,7 @@
 - Creada la hoja de ruta integral del proyecto en `ROADMAP.md`, desde la fundación del repositorio hasta la sincronización selectiva con GenOffice.
 - Fase 0 iniciada: directorio local conectado a `origin/main`; añadido remoto `upstream` de solo lectura y fijado el commit inicial de GenOffice en `2239cce` (detalle en `UPSTREAM.md`).
 - Snapshot de GenOffice `2239cce` importado en `import/genoffice-2239cce` sin heredar su historial Git. `npm ci`, typecheck y pruebas unitarias completados; resultados y observaciones en `BASELINE.md`.
+- Validación de compatibilidad completada: regenerados los fixtures de Sheets, verificadas cinco operaciones XLSX sin cambios inesperados y ejecutadas correctamente las 43 pruebas E2E de escritorio. Solo queda validar el empaquetado y los smoke tests por plataforma antes de cerrar la fase de importación.
 
 ## Referencias
 

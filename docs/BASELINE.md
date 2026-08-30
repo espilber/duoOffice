@@ -18,6 +18,9 @@
 - `npm run typecheck`: completado correctamente para los workspaces de la base importada.
 - `npm test`: completado correctamente para la batería unitaria de la base importada.
 - Construcción individual: completada correctamente para Docs, Sheets, Slides, PDF, Markdown y Shell.
+- `npm run fixtures -w @genoffice/sheets`: completado; se han regenerado los seis fixtures de control.
+- `npm run compat -w @genoffice/sheets`: completado; las cinco verificaciones XLSX han preservado todas las entradas ajenas a la hoja modificada.
+- `npm run test:e2e`: completado; 43 pruebas E2E de escritorio ejecutadas sin errores.
 
 ## Observaciones heredadas
 
@@ -26,5 +29,4 @@
 
 ## Validaciones pendientes
 
-- Pruebas E2E y de compatibilidad de Sheets.
 - Empaquetado y smoke tests en macOS, Windows y Linux.

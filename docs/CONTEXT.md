@@ -18,6 +18,7 @@ duoOffice es una versión personalizada de GenOffice, basada en su repositorio c
 - La ejecución se organiza por fases: fundación, importación base, independencia de GenSpark, rebranding, refinamiento de interfaz, distribución alpha y sincronización selectiva con upstream. El plan completo está en `ROADMAP.md`.
 - Referencia upstream inicial: GenOffice `2239cce9e7f4ad07c2e8e327051ff1b8dda4562c`; la política de revisión e integración está en `UPSTREAM.md`.
 - El árbol de fuentes de la referencia upstream está importado en la rama `import/genoffice-2239cce`, sin arrastrar el historial Git de GenOffice. La línea base está documentada en `BASELINE.md`.
+- La línea base ha superado instalación, tipos, unitarias, builds por workspace, compatibilidad XLSX (cinco fixtures) y 43 pruebas E2E. Pendiente de la fase de importación: empaquetado y smoke tests por plataforma.
 
 ## Estado
 
