@@ -17,4 +17,4 @@
 
 ## Próxima acción
 
-Importar este snapshot de GenOffice en una rama controlada y establecer su línea base de pruebas antes de modificar el producto.
+Confirmar la importación y completar la validación de construcción, E2E y compatibilidad antes de modificar el producto.

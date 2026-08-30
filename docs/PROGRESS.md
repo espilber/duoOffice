@@ -14,6 +14,7 @@
 - El historial accesible del repositorio remoto `espilber/duoOffice` fue sustituido por un único commit raíz vacío: `39f403f` (`chore: initialize duoOffice`).
 - Creada la hoja de ruta integral del proyecto en `ROADMAP.md`, desde la fundación del repositorio hasta la sincronización selectiva con GenOffice.
 - Fase 0 iniciada: directorio local conectado a `origin/main`; añadido remoto `upstream` de solo lectura y fijado el commit inicial de GenOffice en `2239cce` (detalle en `UPSTREAM.md`).
+- Snapshot de GenOffice `2239cce` importado en `import/genoffice-2239cce` sin heredar su historial Git. `npm ci`, typecheck y pruebas unitarias completados; resultados y observaciones en `BASELINE.md`.
 
 ## Referencias
 
