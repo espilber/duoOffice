@@ -252,31 +252,6 @@ export const AGENT_TOOLS: AgentToolDef[] = [
     },
   },
   {
-    name: 'generate_image',
-    description:
-      'Generate an illustration with AI from a text prompt and insert it into the document after a top-level block. For illustration/diagram-style art that image_search cannot find, or when the user asks to generate/draw a picture. Requires Genspark login with cloud tools enabled, and the document must have been saved to disk at least once.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        prompt: {
-          type: 'string',
-          description: 'Image description in English, concrete and visual',
-        },
-        aspectRatio: {
-          type: 'string',
-          description: 'Optional aspect ratio like "16:9", "1:1", "4:3"',
-        },
-        afterIndex: {
-          type: 'integer',
-          description:
-            '0-based block index to insert after; -1 = document start. Defaults to the end of the document.',
-        },
-        alt: { type: 'string', description: 'Alt text describing the image' },
-      },
-      required: ['prompt'],
-    },
-  },
-  {
     name: 'read_frontmatter',
     description:
       'Read the document properties: the raw YAML frontmatter block at the top of the file (title, tags, date, …), without the --- fences.',
@@ -396,7 +371,7 @@ function findMatches(
   return ranges
 }
 
-// ── image insertion (insert_image / generate_image) ──
+// ── image insertion ──
 
 /** magic-byte sniff: the fetch handler's content-type mapping defaults unknown
  *  types to jpeg, which would save webp/svg bytes under a lying .jpg name */
@@ -742,27 +717,6 @@ export function executeTool(
         fail: t('aiToolInsertImage'),
         done: t('aiToolInsertImageDone'),
       })
-    }
-
-    case 'generate_image': {
-      if (editedExternally(editor)) return fail(STALE_DOC_ERROR, t('aiToolGenImage'))
-      const prompt = String(call.input.prompt ?? '').trim()
-      if (!prompt) return fail('prompt must not be empty', t('aiToolGenImage'))
-      const aspectRatio = String(call.input.aspectRatio ?? '').trim()
-      return window.markdownApi
-        .aiGenerateImage({ prompt, ...(aspectRatio ? { aspectRatio } : {}) })
-        .then((generated): ToolExecution | Promise<ToolExecution> => {
-          if (signal?.aborted) {
-            return fail('stopped by the user; the image was not inserted', t('aiToolGenImage'))
-          }
-          if (!generated.url) {
-            return fail(generated.error ?? 'image generation failed', t('aiToolGenImage'))
-          }
-          return insertImageFromUrl(editor, generated.url, call.input, signal, {
-            fail: t('aiToolGenImage'),
-            done: t('aiToolGenImageDone'),
-          })
-        })
     }
 
     default:

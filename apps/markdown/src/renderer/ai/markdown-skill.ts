@@ -34,7 +34,7 @@ const AGENT_SYSTEM_PROMPT = [
   '- If a tool reports the document changed under you, refresh the context and re-plan instead of retrying blindly.',
   '',
   '## Images',
-  '- To add a photo or real-world picture, use image_search and pick the best fit, then insert_image. For illustration/diagram-style art that search cannot find, or when the user asks to generate a picture, use generate_image.',
+  '- To add a photo or real-world picture, use image_search and pick the best fit, then insert_image.',
   '- Both insert paths save the image file next to the document, which requires the document to have been saved at least once; if a tool reports there is no save location, ask the user to save the file first.',
   '',
   '## Document properties (frontmatter)',

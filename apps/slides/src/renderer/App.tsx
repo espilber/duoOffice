@@ -85,7 +85,7 @@ import { EquationDialog, HeaderFooterDialog, LinkDialog } from './components/Ins
 import { CutoutDialog } from './components/CutoutDialog'
 import type { WordArtPreset } from '@genoffice/ui'
 import type { ChartPresetDef, IconDef, SmartArtDef } from './insert-presets'
-import { GensparkMark, IconAiBeautify, IconAiFactCheck, IconAiImage } from './components/icons'
+import { AiSparkMark, IconAiBeautify, IconAiFactCheck, IconAiImage } from './components/icons'
 import { ToastHost } from './components/toast'
 import { showToast } from './components/toast-bus'
 import { t, useI18n } from './i18n/locale'
@@ -141,12 +141,28 @@ const THUMBS_W_KEY = 'ai-slides-thumbs-width'
 const THUMBS_W_DEFAULT = 120
 const THUMBS_W_MIN = 110
 
+function readLocalSetting(key: string): string | null {
+  try {
+    return globalThis.localStorage?.getItem(key) ?? null
+  } catch {
+    return null
+  }
+}
+
+function writeLocalSetting(key: string, value: string): void {
+  try {
+    globalThis.localStorage?.setItem(key, value)
+  } catch {
+    // Storage can be unavailable in sandboxed or test environments.
+  }
+}
+
 function clampThumbsW(w: number): number {
   return Math.min(Math.max(w, THUMBS_W_MIN), Math.min(400, Math.round(window.innerWidth * 0.4)))
 }
 
 function loadThumbsW(): number {
-  const saved = Number(localStorage.getItem(THUMBS_W_KEY))
+  const saved = Number(readLocalSetting(THUMBS_W_KEY))
   return Number.isFinite(saved) && saved > 0 ? clampThumbsW(saved) : THUMBS_W_DEFAULT
 }
 
@@ -398,19 +414,17 @@ export function App() {
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
       setThumbsW(w)
-      localStorage.setItem(THUMBS_W_KEY, String(Math.round(w)))
+      writeLocalSetting(THUMBS_W_KEY, String(Math.round(w)))
     }
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
   }
-  const [autoSave, setAutoSave] = useState(
-    () => localStorage.getItem('ai-slides-auto-save') === '1',
-  )
+  const [autoSave, setAutoSave] = useState(() => readLocalSetting('ai-slides-auto-save') === '1')
   useEffect(() => {
-    localStorage.setItem('ai-slides-auto-save', autoSave ? '1' : '0')
+    writeLocalSetting('ai-slides-auto-save', autoSave ? '1' : '0')
     window.slidesApi.setAutoSavePref?.(autoSave)
   }, [autoSave])
-  const [showAi, setShowAi] = useState(() => localStorage.getItem('ai-slides-show-ai') !== '0')
+  const [showAi, setShowAi] = useState(() => readLocalSetting('ai-slides-show-ai') !== '0')
   const [showFormat, setShowFormat] = useState(false)
   const [showBgFormat, setShowBgFormat] = useState(false)
   const [aiSettings, setAiSettings] = useState<AiSettings | null>(null)
@@ -1136,7 +1150,7 @@ export function App() {
 
   const toggleAi = useCallback(() => {
     setShowAi((v) => {
-      localStorage.setItem('ai-slides-show-ai', v ? '0' : '1')
+      writeLocalSetting('ai-slides-show-ai', v ? '0' : '1')
       return !v
     })
   }, [])
@@ -1150,7 +1164,7 @@ export function App() {
       slideShot?: boolean,
     ) => {
       setShowAi(() => {
-        localStorage.setItem('ai-slides-show-ai', '1')
+        writeLocalSetting('ai-slides-show-ai', '1')
         return true
       })
       setAiPreset({
@@ -1278,7 +1292,7 @@ export function App() {
       })
       // The queue lives in the panel; annotating with it collapsed would look like nothing happened
       setShowAi(() => {
-        localStorage.setItem('ai-slides-show-ai', '1')
+        writeLocalSetting('ai-slides-show-ai', '1')
         return true
       })
     },
@@ -1558,7 +1572,7 @@ export function App() {
   useEffect(() => {
     if (!path) return
     try {
-      const raw = localStorage.getItem(`ai-slides-guides:${path}`)
+      const raw = readLocalSetting(`ai-slides-guides:${path}`)
       setGuides(
         raw
           ? JSON.parse(raw)
@@ -1577,7 +1591,7 @@ export function App() {
   useEffect(() => {
     if (!path) return
     try {
-      localStorage.setItem(`ai-slides-guides:${path}`, JSON.stringify(guides))
+      writeLocalSetting(`ai-slides-guides:${path}`, JSON.stringify(guides))
     } catch {
       /* Quota full: guides aren't critical data, ignore */
     }
@@ -1689,7 +1703,7 @@ export function App() {
       return
     }
     try {
-      const raw = localStorage.getItem(`ai-slides-custom-shows:${path}`)
+      const raw = readLocalSetting(`ai-slides-custom-shows:${path}`)
       const parsed: unknown = raw ? JSON.parse(raw) : []
       setCustomShows(Array.isArray(parsed) ? (parsed as CustomShow[]) : [])
     } catch {
@@ -3180,7 +3194,7 @@ export function App() {
                 data-tip={t('appAiRailExpand')}
                 aria-label={t('appAiRailExpand')}
               >
-                <GensparkMark size={22} />
+                <AiSparkMark size={22} />
               </button>
             )}
           </div>
@@ -3518,8 +3532,8 @@ export function App() {
                               data-tip={t('aiOpenAssistant')}
                               onClick={toggleAi}
                             >
-                              <GensparkMark size={14} />
-                              <span>Genspark AI</span>
+                              <AiSparkMark size={14} />
+                              <span>duoOffice AI</span>
                             </button>
                             {/* Same one-click presets as the Home tab; hidden instead of
                         disabled while the deck has no real content */}

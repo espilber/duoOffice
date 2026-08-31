@@ -16,6 +16,15 @@
 - Fase 0 iniciada: directorio local conectado a `origin/main`; añadido remoto `upstream` de solo lectura y fijado el commit inicial de GenOffice en `2239cce` (detalle en `UPSTREAM.md`).
 - Snapshot de GenOffice `2239cce` importado en `import/genoffice-2239cce` sin heredar su historial Git. `npm ci`, typecheck y pruebas unitarias completados; resultados y observaciones en `BASELINE.md`.
 - Validación de compatibilidad completada: regenerados los fixtures de Sheets, verificadas cinco operaciones XLSX sin cambios inesperados y ejecutadas correctamente las 43 pruebas E2E de escritorio. Solo queda validar el empaquetado y los smoke tests por plataforma antes de cerrar la fase de importación.
+- Creada la rama `feature/remove-genspark` para el bloque de independencia del proveedor privado.
+- Eliminados el proveedor privado del registro de IA, su adaptador, autenticación, CLI, credenciales, login, proyectos cloud, generación multimedia privada y conversión PDF→Word cloud.
+- Conservados los proveedores BYOK y su configuración; Anthropic pasa a ser el proveedor predeterminado y las selecciones antiguas se migran a un proveedor BYOK configurado.
+- Las capacidades sin alternativa privada quedan explícitamente locales o basadas en búsqueda pública: Serper/DuckDuckGo para búsqueda e imágenes, generación local de Slides y conversión PDF→Word local.
+- Sustituidos los elementos visuales del asistente por identidad genérica de duoOffice y actualizados los enlaces de repositorio/descargas a `espilber/duoOffice`.
+- Añadida la puerta automática `npm run check:no-private-ai`, que audita fuentes distribuibles, manifiestos y lockfile; superada sobre 829 archivos.
+- Validación del bloque: formato, typecheck global, compilación de los seis workspaces y pruebas de todos los módulos superadas. Se estabilizaron dos pruebas dependientes del entorno (`PassThrough` y almacenamiento local) sin alterar comportamiento productivo.
+- E2E de escritorio sobre la aplicación adaptada: 38 pruebas superadas y 5 regresiones visuales omitidas por configuración, sin fallos.
+- Pendiente antes de cerrar la fase: smoke del paquete por plataforma y definición de las políticas propias de telemetría y actualización.
 
 ## Referencias
 

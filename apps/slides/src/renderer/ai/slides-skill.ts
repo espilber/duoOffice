@@ -112,35 +112,8 @@ export interface DeckAccess {
    * On search failure returns an empty array (fail-open; doesn't block the main generation path).
    */
   searchImages?(query: string, maxResults: number): Promise<string[]>
-  /** Whether cloud single-page generation is available (kill switch + gsk login state) */
-  isCloudPageGenEnabled?(): Promise<boolean>
-  /** live predicate: gsk login && the Genspark-cloud-tools toggle; false hides generate_image / analyze_media */
-  gskTools?(): boolean
   /**
-   * Cloud single-page generation (gsk slide_generate), used by generate_deck's self-driven
-   * pipeline: given the unified style + this page's brief/layout/images, the cloud service
-   * writes the HTML and converts it to a one-slide pptx. Returns a marker string that goes
-   * into a landGeneratedPages pageMarkers slot.
-   */
-  generatePageCloud?(args: {
-    pageIndex: number
-    totalPages: number
-    coreHook: string
-    style: string
-    title: string
-    brief: string
-    layout: string
-    images: string[]
-    context?: string
-    topic?: string
-    canvasW: number
-    canvasH: number
-    signal?: AbortSignal
-  }): Promise<{ ok: boolean; marker?: string; error?: string }>
-  /**
-   * Local single-page generation (used when cloud is unavailable, e.g. BYOK without gsk):
-   * same inputs and marker contract as generatePageCloud, but the page is produced entirely
-   * locally — one LLM request writes a structured slide spec and the main process builds it
+   * Local single-page generation: one LLM request writes a structured slide spec and the main process builds it
    * directly into a one-slide pptx (no HTML intermediate).
    */
   generatePageLocal?(args: {
@@ -534,60 +507,9 @@ const TOOLS: AgentToolDef[] = [
     },
   },
   {
-    name: 'generate_image',
-    description:
-      'AI image generation/editing (Genspark). Text-to-image, or pass referenceImageUrls for image editing; returns an image URL. NEW imagery: insert with insert_web_image. Editing an EXISTING slide picture (background removal/upscaling/etc.): swap it in place with replace_image — do not insert a duplicate. Use for custom illustrations/icons/backgrounds, style-consistent imagery; for real photos/screenshots still use image_search.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        prompt: {
-          type: 'string',
-          description:
-            'Image description, English works better (keep any text to render in the image verbatim)',
-        },
-        model: {
-          type: 'string',
-          description:
-            'Optional, defaults to the general model. Specify only for special purposes: fal-bria-rmbg=background removal, fal-ai/recraft-clarity-upscale=upscale, flux-pro/outpaint=outpaint, fal-ai/image-editing/text-removal=remove text watermark',
-        },
-        referenceImageUrls: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'URLs of reference images / images to edit (required for editing tasks)',
-        },
-        aspectRatio: {
-          type: 'string',
-          description: 'Aspect ratio: 1:1|4:3|16:9|9:16|3:4|2:3|3:2|auto',
-        },
-      },
-      required: ['prompt'],
-    },
-  },
-  {
-    name: 'analyze_media',
-    description:
-      'Analyze media content (Genspark): understand images/audio/video. Pass media URLs (or local file paths) and analysis requirements; returns analysis text. Video supports extracting key points, structure, and time ranges — good for turning user material into usable deck content.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        mediaUrls: {
-          type: 'array',
-          items: { type: 'string' },
-          description: 'List of media URLs or local file paths',
-        },
-        requirements: {
-          type: 'string',
-          description:
-            'Analysis requirements (English): what to extract and how the result will be used (e.g. extract key points for slides)',
-        },
-      },
-      required: ['mediaUrls', 'requirements'],
-    },
-  },
-  {
     name: 'insert_web_image',
     description:
-      'Download an image URL obtained from image_search or generate_image and insert it into a page (pixel coordinates). w×h is a layout frame, not a stretch target: the image keeps its aspect ratio, fills the frame, and the overflow is center-cropped (object-fit: cover) — pick the frame for the layout freely.',
+      'Download an image URL obtained from image_search and insert it into a page (pixel coordinates). w×h is a layout frame, not a stretch target: the image keeps its aspect ratio, fills the frame, and the overflow is center-cropped (object-fit: cover) — pick the frame for the layout freely.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -1553,30 +1475,14 @@ export function formatSlideDump(slide: RenderSlide): string {
   return `Canvas ${slide.widthPx}×${slide.heightPx}px (1 px = ${pxToEmu} EMU)\n${parts.join('\n---\n') || '(no elements on this page)'}${colorNote}`
 }
 
-/** tools only usable through the Genspark cloud (gated by login + the cloud-tools toggle) */
-const GSK_ONLY_TOOLS = new Set(['generate_image', 'analyze_media'])
-
-const GSK_TOOLS_OFF_NOTE =
-  '\n\nNote: generate_image and analyze_media are currently unavailable (Genspark cloud tools are off or the user is signed out). Do not call or promise them; for imagery use image_search + insert_web_image instead.'
-
 export function createSlidesSkill(access: DeckAccess): AgentSkill {
   // The HTML pipeline was already used in this conversation → later calls without an explicit mode default to append.
   // Safety net for when the AI ignores the "pass all pages at once" constraint: separate calls no longer overwrite each other (P0-1).
   const state: SkillState = { htmlGenerated: false }
   return {
     id: 'slides',
-    // live like tools: the off-note overrides the prose that still mentions the hidden tools
-    get systemPrompt() {
-      return access.gskTools?.() === false
-        ? AGENT_SYSTEM_PROMPT + GSK_TOOLS_OFF_NOTE
-        : AGENT_SYSTEM_PROMPT
-    },
-    // live view: gskTools is re-read before every model request
-    get tools() {
-      return access.gskTools?.() === false
-        ? TOOLS.filter((t) => !GSK_ONLY_TOOLS.has(t.name))
-        : TOOLS
-    },
+    systemPrompt: AGENT_SYSTEM_PROMPT,
+    tools: TOOLS,
     buildContext: () => {
       const outline = `<deck outline>\n${buildDeckOutline(access.getSlides(), access.getCurrent(), access.getSelectedIds())}\n</deck outline>`
       const progress = buildProgressNote(state)
@@ -2040,54 +1946,6 @@ async function executeTool(
       }
     }
 
-    case 'generate_image': {
-      const prompt = String(call.input.prompt ?? '').trim()
-      if (!prompt) return fail(t('aiFailGenImage'), 'prompt must not be empty')
-      const refs = Array.isArray(call.input.referenceImageUrls)
-        ? (call.input.referenceImageUrls as unknown[]).map(String).filter(Boolean)
-        : undefined
-      const r = await window.slidesApi.generateImage({
-        prompt,
-        model: call.input.model ? String(call.input.model) : undefined,
-        referenceImageUrls: refs,
-        aspectRatio: call.input.aspectRatio ? String(call.input.aspectRatio) : undefined,
-      })
-      if (!r.url) return fail(t('aiFailGenImage'), r.error ?? 'Generation failed')
-      const display: ToolDisplay = {
-        kind: 'images',
-        items: [{ url: r.url, title: prompt.slice(0, 60) }],
-      }
-      return {
-        output:
-          `Image generated, URL: ${r.url}\n` +
-          'New imagery: insert it with insert_web_image. If this edits an existing slide picture (e.g. background removal), swap it in place with replace_image instead.',
-        mutated: false,
-        summary: t('aiSumGenImage', {
-          prompt: `${prompt.slice(0, 20)}${prompt.length > 20 ? '…' : ''}`,
-        }),
-        display,
-      }
-    }
-
-    case 'analyze_media': {
-      const mediaUrls = Array.isArray(call.input.mediaUrls)
-        ? (call.input.mediaUrls as unknown[]).map(String).filter(Boolean)
-        : []
-      const requirements = String(call.input.requirements ?? '').trim()
-      if (!mediaUrls.length) return fail(t('aiFailMedia'), 'mediaUrls must not be empty')
-      if (!requirements) return fail(t('aiFailMedia'), 'requirements must not be empty')
-      const r = await window.slidesApi.analyzeMedia({ mediaUrls, requirements })
-      if (!r.text) return fail(t('aiFailMedia'), r.error ?? 'Analysis failed')
-      // Analysis text can be very long; truncate to protect context (first 6000 chars are enough to generate deck content)
-      const MAX_LEN = 6000
-      const text = r.text.length > MAX_LEN ? r.text.slice(0, MAX_LEN) + '\n…(truncated)' : r.text
-      return {
-        output: text,
-        mutated: false,
-        summary: t('aiSumParseMedia', { count: mediaUrls.length }),
-      }
-    }
-
     case 'insert_web_image': {
       const idx = Number(call.input.slideIndex)
       if (!slides[idx])
@@ -2277,9 +2135,7 @@ async function executeTool(
       const idx = Number(call.input.slideIndex)
       if (!slides[idx])
         return fail(t('aiFailRegen'), `slideIndex out of range (0-${slides.length - 1})`)
-      const regenUseCloud =
-        !!access.generatePageCloud && !!(await access.isCloudPageGenEnabled?.().catch(() => false))
-      if (!access.regenerateSlide || (!regenUseCloud && !access.generatePageLocal))
+      if (!access.regenerateSlide || !access.generatePageLocal)
         return fail(
           t('aiFailRegen'),
           'The current environment does not support the page-redo pipeline',
@@ -2312,7 +2168,7 @@ async function executeTool(
         canvasW: 1280,
         canvasH: 720,
       }
-      const regenGen = regenUseCloud ? access.generatePageCloud! : access.generatePageLocal!
+      const regenGen = access.generatePageLocal
       for (let attempt = 0; attempt < 2 && !marker; attempt++) {
         if (attempt > 0 && backoff > 0) await new Promise((r) => setTimeout(r, backoff))
         const res = await regenGen(regenArgs)
@@ -2367,11 +2223,8 @@ async function executeTool(
       // ── Self-driven pipeline:
       //   1) Plan: use pages if passed; with topic, the tool plans the outline via LLM (batched recursion over threshold) — fixes missing pages at the input side.
       //   2) Generate: batched concurrent page generation (one retry per page), **each batch lands immediately → frontend shows pages one by one**.
-      //      Cloud (gsk slide_generate) when available; otherwise fully local — the LLM (app AI
-      //      transport, works with BYOK) writes a slide spec that is built directly into a pptx.
-      const useCloud =
-        !!access.generatePageCloud && !!(await access.isCloudPageGenEnabled?.().catch(() => false))
-      if (!useCloud && !access.generatePageLocal)
+      //      The configured BYOK model writes a slide spec that is built directly into a pptx.
+      if (!access.generatePageLocal)
         return fail(
           t('aiFailGenDeck'),
           'No page generation pipeline is available in this environment',
@@ -2682,7 +2535,7 @@ async function executeTool(
       const deckName = String(pages[0]?.title ?? '').trim() || topic || coreHook
 
       // ── Step 2: generate page by page + land as we go (frontend shows pages one by one).
-      // Cloud (gsk slide_generate) and local (LLM spec → pptx-engine build) both produce a
+      // Cloud (provider slide_generate) and local (LLM spec → pptx-engine build) both produce a
       // one-slide pptx temp file; genOne returns its marker and landing reads the bytes.
       // Land strictly in page order: nextToLand pointer; a page lands only when its marker is ready, keeping page order intact.
       const markerByIndex: (string | null)[] = new Array(total).fill(null)
@@ -2751,10 +2604,10 @@ async function executeTool(
           canvasH,
           ...(signal ? { signal } : {}),
         }
-        // Both paths return a marker pointing at a one-slide pptx temp file. One retry, then the
+        // The local path returns a marker pointing at a one-slide pptx temp file. One retry, then the
         // page is skipped for now (locally-failed pages get one more chance in the retry round)
         // and the rest of the deck keeps generating.
-        const gen = useCloud ? access.generatePageCloud! : access.generatePageLocal!
+        const gen = access.generatePageLocal!
         for (let attempt = 0; attempt < 2; attempt++) {
           if (cancelled()) return null
           if (attempt > 0 && BACKOFF_MS > 0) await new Promise((r) => setTimeout(r, BACKOFF_MS))
@@ -2844,18 +2697,15 @@ async function executeTool(
 
       // ── One retry round for failed pages, re-inserted at their original page position with
       //   insert_at (target position = existing-page offset + pages completed before this one).
-      //   Landing-failed pages re-land (cheap: the one-slide pptx already exists). Cloud
-      //   generation-failed pages already spent their single retry and stay skipped; local
+      //   Landing-failed pages re-land (cheap: the one-slide pptx already exists). Local
       //   generation-failed pages get one more generation attempt here (LLM calls are the
       //   user's own quota, and a JSON spec retry is cheap).
       if (!cancelled()) {
-        const retryIdxs = [...new Set([...(useCloud ? [] : genFailed), ...landFailed])].sort(
-          (a, b) => a - b,
-        )
+        const retryIdxs = [...new Set([...genFailed, ...landFailed])].sort((a, b) => a - b)
         for (const idx of retryIdxs) {
           if (cancelled()) break
           let marker = markerByIndex[idx]
-          if (!marker && !useCloud) marker = await genOne(pages[idx]!, idx + 1)
+          if (!marker) marker = await genOne(pages[idx]!, idx + 1)
           if (!marker) {
             pageProgressItems[idx] = {
               ...pageProgressItems[idx]!,

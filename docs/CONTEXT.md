@@ -9,7 +9,7 @@ duoOffice es una versión personalizada de GenOffice, basada en su repositorio c
 - Mantener el resto de proveedores de IA y sus configuraciones.
 - Eliminar la integración y el inicio de sesión de GenSpark.
 - Revisar las actualizaciones de GenOffice antes de incorporarlas.
-- Definir posteriormente el mecanismo y destino de estadísticas y actualizaciones.
+- Definir posteriormente el mecanismo y destino de estadísticas y actualizaciones; la implementación heredada todavía debe revisarse antes de distribución.
 - Electron es la plataforma de escritorio de duoOffice. Tauri queda descartado.
 - duoOffice requiere rebranding completo, incluyendo identidad visual, IDs técnicos, rutas, servicios de publicación y una splash screen de inicio.
 - GenSpark se eliminará de la distribución en todas sus capas; no basta con ocultar sus paneles. La integración de cambios de GenOffice se apoyará en una arquitectura de registro de proveedores/herramientas y una rama de seguimiento upstream.
@@ -22,4 +22,6 @@ duoOffice es una versión personalizada de GenOffice, basada en su repositorio c
 
 ## Estado
 
-La estructura de memoria está iniciada. La especificación de desacoplamiento está en borrador y todavía no se ha modificado ni limpiado el código del repositorio.
+El desacoplamiento técnico del proveedor privado está implementado en `feature/remove-genspark`: no quedan dependencias, dominios, credenciales ni rutas ejecutables privadas en las fuentes distribuibles. La auditoría automática y el detalle están en `PRIVATE-AI-AUDIT.md`.
+
+El bloque continúa abierto hasta validar el smoke del paquete por plataforma y decidir telemetría y actualizaciones. El E2E de escritorio adaptado ya está superado.

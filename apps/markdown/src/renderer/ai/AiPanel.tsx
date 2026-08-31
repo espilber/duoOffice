@@ -34,6 +34,22 @@ function countWords(text: string): number {
 const PANEL_WIDTH_KEY = 'markdown-ai-panel-width'
 const PANEL_WIDTH_DEFAULT = 360
 const PANEL_WIDTH_MIN = 280
+
+function readLocalSetting(key: string): string | null {
+  try {
+    return globalThis.localStorage?.getItem(key) ?? null
+  } catch {
+    return null
+  }
+}
+
+function writeLocalSetting(key: string, value: string): void {
+  try {
+    globalThis.localStorage?.setItem(key, value)
+  } catch {
+    // Storage can be unavailable in sandboxed or test environments.
+  }
+}
 const MAX_SNAPSHOTS = 20
 const TOOL_OUTPUT_MAX_CHARS = 2000
 
@@ -45,7 +61,7 @@ function clampPanelWidth(w: number): number {
 }
 
 function loadPanelWidth(): number {
-  const saved = Number(localStorage.getItem(PANEL_WIDTH_KEY))
+  const saved = Number(readLocalSetting(PANEL_WIDTH_KEY))
   // static bounds only — clamping against the window here would bake a
   // transiently small viewport into the restored preference
   return Number.isFinite(saved) && saved > 0
@@ -540,7 +556,7 @@ export function AiPanel({
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
       setResizing(false)
-      localStorage.setItem(PANEL_WIDTH_KEY, String(Math.round(preferredWidthRef.current)))
+      writeLocalSetting(PANEL_WIDTH_KEY, String(Math.round(preferredWidthRef.current)))
     }
     resizeCleanupRef.current = cleanup
     window.addEventListener('pointermove', onMove)
@@ -561,12 +577,12 @@ export function AiPanel({
         onPointerDown={startResize}
         role="separator"
         aria-orientation="vertical"
-        aria-label="Genspark"
+        aria-label="duoOffice"
       />
       <header className="ai-panel-header">
         <span className="ai-panel-title">
-          <GensparkMark size={22} />
-          Genspark
+          <AiSparkMark size={22} />
+          duoOffice
         </span>
         <div className="ai-panel-header-actions">
           {chat.length > 0 && (
@@ -1012,8 +1028,8 @@ function IconClock(): ReactElement {
   )
 }
 
-/** Genspark brand mark, inline for crisp device-resolution rendering */
-export function GensparkMark({ size = 18 }: { size?: number }): React.JSX.Element {
+/** duoOffice brand mark, inline for crisp device-resolution rendering */
+export function AiSparkMark({ size = 18 }: { size?: number }): React.JSX.Element {
   return (
     <svg
       width={size}

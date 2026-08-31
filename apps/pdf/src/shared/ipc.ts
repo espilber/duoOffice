@@ -28,7 +28,6 @@ export const PDF_CHANNELS = {
   exportImages: 'pdf:export-images',
   convertOffice: 'pdf:convert-office',
   createDocument: 'pdf:create-document',
-  generateImage: 'pdf:generate-image',
   listSignatures: 'pdf:list-signatures',
   addSignature: 'pdf:add-signature',
   removeSignature: 'pdf:remove-signature',
@@ -645,7 +644,6 @@ export type ExportImagesResult =
 /** AI channels are app-wide shared ipcMain handlers (shell registers via docs-main registerAiIpc); pass-through only */
 export const AI_CHANNELS = {
   getSettings: 'ai:get-settings',
-  gskStatus: 'ai:gsk-status',
   stream: 'ai:stream',
   streamChunk: 'ai:stream-chunk',
   streamCancel: 'ai:stream-cancel',
@@ -727,11 +725,6 @@ export interface PdfApi {
   imageSearch(query: string, maxResults?: number): Promise<ImageSearchResponse>
   /** Download an image URL in the main process (SSRF-guarded, avoids CORS); null on failure */
   fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
-  /** AI image generation via Genspark (gsk); returns a downloadable URL or an error message */
-  generateImage(op: { prompt: string; aspectRatio?: string }): Promise<{
-    url?: string
-    error?: string
-  }>
   /** Saved signatures reusable across documents (persisted in userData), newest first */
   listSavedSignatures(): Promise<SavedSignature[]>
   /** Persist a signature for reuse; returns the updated list (capped, deduplicated) */
@@ -760,8 +753,6 @@ export interface PdfApi {
    *  clicks produce no DOM event here) — dismiss open popovers */
   onChromePressed(handler: () => void): () => void
   getAiSettings(): Promise<AiSettings>
-  /** Genspark login state (gsk); gates the cloud-only generate_image tool */
-  gskStatus(): Promise<{ loggedIn: boolean }>
   aiStream(request: AiStreamRequest): Promise<void>
   aiStreamCancel(requestId: string): Promise<void>
   onAiStream(handler: (chunk: AiStreamChunk) => void): () => void

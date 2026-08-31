@@ -445,9 +445,36 @@ function ProjectPanel({ projects, selectedId, onSelect, onRefresh }: ProjectPane
 }
 
 // ── Account entry (bottom-left) ──────────────────────────
-// Currently the Genspark (gsk) login entry; to be upgraded to a signup/account system later.
+// Currently the duoOffice (provider) login entry; to be upgraded to a signup/account system later.
 // Clicking it opens the settings modal directly (SettingsModal.tsx), which hosts
 // login/logout plus preferences (language, theme, save location, update channel).
+
+/** duoOffice entry: settings only, with no vendor account or login state. */
+function SettingsEntry() {
+  const { t } = useI18n()
+  const [settingsOpen, setSettingsOpen] = useState(false)
+
+  return (
+    <div className="account-entry">
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      <button
+        className="account-btn"
+        onClick={() => setSettingsOpen(true)}
+        aria-haspopup="dialog"
+        aria-expanded={settingsOpen}
+        data-tip={t('settings')}
+        aria-label={t('settings')}
+      >
+        <span className="account-avatar" aria-hidden="true">
+          ⚙
+        </span>
+        <span className="account-text">
+          <span className="account-name">{t('settings')}</span>
+        </span>
+      </button>
+    </div>
+  )
+}
 
 const LOGIN_POLL_MS = 2500
 /** fallback deadline when the CLI does not report expires_in (device codes live ~300s) */
@@ -491,7 +518,7 @@ function AccountEntry({
     }
   }, [])
 
-  // login progress pushed from main (gsk login CLI output)
+  // login progress pushed from main (provider login CLI output)
   useEffect(() => {
     const off = window.aiOffice.onAccountLogin?.((ev) => {
       if (ev.phase === 'url') {
@@ -595,23 +622,7 @@ function AccountEntry({
 
   return (
     <div className="account-entry">
-      {settingsOpen && (
-        <SettingsModal
-          status={status}
-          loggingOut={loggingOut}
-          loginWaiting={waiting}
-          loginUrl={authUrl}
-          urlCopied={urlCopied}
-          onOpenLoginUrl={openLoginUrl}
-          onCopyLoginUrl={copyLoginUrl}
-          onClose={() => setSettingsOpen(false)}
-          onLogin={() => {
-            setSettingsOpen(false)
-            startLogin()
-          }}
-          onLogout={doLogout}
-        />
-      )}
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
       {!settingsOpen && waiting && authUrl && (
         <div className="login-hint" role="status">
           <button className="login-hint-open" onClick={openLoginUrl}>
@@ -665,10 +676,10 @@ function AccountEntry({
         aria-expanded={settingsOpen}
         data-tip={
           loggedIn
-            ? email || t('loggedInGenspark')
+            ? email || t('loggedInduoOffice')
             : waiting
               ? t('waitingLogin')
-              : (errorText ?? t('loginGenspark'))
+              : (errorText ?? t('loginduoOffice'))
         }
         aria-label={t('settings')}
       >
@@ -734,7 +745,7 @@ function AccountEntry({
   )
 }
 
-// ── Cloud (Genspark web) projects view ──────────────────
+// ── Cloud (duoOffice web) projects view ──────────────────
 
 /** kind filter segments; labels shared with the recents type filter */
 const CLOUD_FILTERS = [
@@ -881,7 +892,7 @@ function CloudProjectsView() {
         <p className="empty proj-empty">
           <span className="empty-hint">{t('cloudLoginHint')}</span>
           <button className="btn btn-secondary" disabled={loginWaiting} onClick={startLogin}>
-            {loginWaiting ? t('waitingShort') : t('loginGenspark')}
+            {loginWaiting ? t('waitingShort') : t('loginduoOffice')}
           </button>
         </p>
       )
@@ -1134,7 +1145,7 @@ export function Home() {
   const [navCounts, setNavCounts] = useState({ recent: 0, starred: 0 })
   const [loadingMore, setLoadingMore] = useState(false)
   const [view, setView] = useState<'recent' | 'starred'>('recent')
-  // Genspark web projects take over the content area (like a selected project)
+  // duoOffice web projects take over the content area (like a selected project)
   const [cloudMode, setCloudMode] = useState(false)
   const [filter, setFilter] = useState('all')
   // modified-column sort (WPS-style header popover), shared by the global and project tables
@@ -1149,7 +1160,7 @@ export function Home() {
   const [confirmDelete, setConfirmDelete] = useState<string[] | null>(null)
   // name in the greeting; omitted when logged out
   const [accountName, setAccountName] = useState('')
-  // Genspark Projects is web-account data, so its nav entry only shows when logged in
+  // duoOffice Projects is web-account data, so its nav entry only shows when logged in
   const [loggedIn, setLoggedIn] = useState(false)
   // single source of account state: AccountEntry reports every change (initial
   // load, login, logout), keeping the greeting name and the nav entry in sync
@@ -2199,7 +2210,7 @@ export function Home() {
           </>
         )}
 
-        <AccountEntry onStatusChange={handleAccountStatus} />
+        <SettingsEntry />
       </aside>
 
       {selectedProjectId ? (

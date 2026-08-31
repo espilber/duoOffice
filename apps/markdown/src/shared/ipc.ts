@@ -18,7 +18,6 @@ export const MARKDOWN_CHANNELS = {
   exportDocx: 'markdown:export-docx',
   exportPdf: 'markdown:export-pdf',
   printRequest: 'markdown:print-request',
-  aiGenerateImage: 'markdown:ai-generate-image',
   getLanguage: 'app:get-language',
   languageChanged: 'app:language-changed',
   getTheme: 'app:get-theme',
@@ -166,9 +165,4 @@ export interface MarkdownApi {
   imageSearch(query: string, maxResults?: number): Promise<ImageSearchResult>
   /** Download an image URL in the main process (CORS-free, scheme/target validated) */
   fetchImage(url: string): Promise<{ base64: string; mime: string } | null>
-  /** Genspark cloud image generation (markdown-owned channel, gsk login required) */
-  aiGenerateImage(op: { prompt: string; aspectRatio?: string }): Promise<{
-    url?: string
-    error?: string
-  }>
 }

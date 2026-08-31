@@ -6,13 +6,13 @@ Eliminar de duoOffice la integración con GenSpark y su autenticación, mantenie
 
 ## Requisitos
 
-- [ ] Localizar y eliminar la integración del proveedor GenSpark.
-- [ ] Eliminar el inicio de sesión, credenciales y flujos de cuenta vinculados a GenSpark.
-- [ ] Mantener el resto de proveedores y sus opciones de configuración.
+- [x] Localizar y eliminar la integración del proveedor GenSpark.
+- [x] Eliminar el inicio de sesión, credenciales y flujos de cuenta vinculados a GenSpark.
+- [x] Mantener el resto de proveedores y sus opciones de configuración.
 - [ ] Identificar los mecanismos actuales de envío de estadísticas y proponer una política para duoOffice.
 - [ ] Identificar la comprobación de actualizaciones y proponer dónde y cómo realizarla.
-- [ ] Eliminar las rutas de ejecución de GenSpark —autenticación, dependencias, credenciales y red— además de sus elementos visuales.
-- [ ] Separar el registro de proveedores y herramientas de IA para que los cambios futuros de GenOffice se puedan integrar sin reactivar GenSpark.
+- [x] Eliminar las rutas de ejecución de GenSpark —autenticación, dependencias, credenciales y red— además de sus elementos visuales.
+- [x] Separar el registro de proveedores y herramientas de IA para que los cambios futuros de GenOffice se puedan integrar sin reactivar GenSpark.
 
 ## Criterios de Aceptación
 
@@ -24,9 +24,9 @@ Eliminar de duoOffice la integración con GenSpark y su autenticación, mantenie
 
 ## Estado
 
-- Especificación: 📝 Borrador
-- Implementación: ⏳ Pendiente
-- Validación: ⏳ Pendiente
+- Especificación: 🚧 En progreso
+- Implementación: 🚧 Desacoplamiento técnico completado; políticas de telemetría y actualización pendientes
+- Validación: 🚧 Tipos, unitarias, builds, auditoría estática y E2E superados; smoke del paquete por plataforma pendiente
 
 ## Notas
 
@@ -36,3 +36,4 @@ Eliminar de duoOffice la integración con GenSpark y su autenticación, mantenie
 - Tauri está descartado. duoOffice conservará Electron como plataforma de escritorio.
 - El alcance y los criterios del rebranding se documentan en `REBRANDING.md`; la splash screen forma parte de ese trabajo.
 - Ocultar controles de GenSpark no es una eliminación válida: dejaría autenticación, credenciales y rutas de red dentro de la distribución. Para facilitar las actualizaciones desde GenOffice, se aislará el registro de proveedores y herramientas; el código eliminado podrá conservarse únicamente en una rama de seguimiento upstream, no en el binario de duoOffice.
+- La evidencia y el inventario de la implementación están en `PRIVATE-AI-AUDIT.md`.

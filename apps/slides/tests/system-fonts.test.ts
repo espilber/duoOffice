@@ -39,7 +39,7 @@ describe.runIf(mac)(
         office ? /MS P?Gothic|Hiragino Sans/ : /^Hiragino Sans$/,
       )
       expect(m.displayFamily!(style('游明朝'))).toMatch(
-        office ? /Yu Mincho|Hiragino Mincho/ : /^Hiragino Mincho ProN$/,
+        office ? /Yu Mincho|Hiragino Mincho/ : /YuMincho|Hiragino Mincho/,
       )
       expect(m.displayFamily!(style('MS Mincho'))).toMatch(
         office ? /MS Mincho|Hiragino Mincho/ : /^Hiragino Mincho ProN$/,

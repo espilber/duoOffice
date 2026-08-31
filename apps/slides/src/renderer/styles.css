@@ -620,15 +620,15 @@ button {
   box-shadow: var(--slides-shadow-badge-soft);
 }
 
-/* Genspark brand logo (Ribbon AI button / AI panel title / collapsed entry) */
-.genspark-badge {
+/* duoOffice brand logo (Ribbon AI button / AI panel title / collapsed entry) */
+.ai-spark-badge {
   display: block;
   width: 22px;
   height: 22px;
   border-radius: 50%;
 }
 
-.ai-panel-title .genspark-badge {
+.ai-panel-title .ai-spark-badge {
   width: 18px;
   height: 18px;
 }
@@ -658,7 +658,7 @@ button {
   overflow-x: scroll;
   overflow-y: hidden;
   /* Slim visible scrollbar so mouse users can reach overflowed groups
-     (genspark-ai/genoffice#55). Its 5px lane is carved out of the bottom
+     (upstream#55). Its 5px lane is carved out of the bottom
      padding, keeping the 80px band and the content area unchanged; Chromium
      paints a thumb only while the row actually overflows. */
   padding-bottom: 1px;
@@ -744,7 +744,7 @@ button {
   color: var(--text-primary);
 }
 
-/* Home-tab Genspark AI entry: black circular "+" badge with a dropdown caret,
+/* Home-tab duoOffice AI entry: black circular "+" badge with a dropdown caret,
    brand label below (mirrors the sheets Home ribbon). */
 /* AI feature buttons next to the entry: purple glyphs, label below */
 .ai-feature-icon {
@@ -790,7 +790,7 @@ button {
   background: var(--active-bg);
 }
 
-/* The Genspark AI entry keeps a black label even while the panel is open. */
+/* The duoOffice AI entry keeps a black label even while the panel is open. */
 .rb-big.ai-entry.active {
   color: var(--text);
 }
@@ -807,7 +807,7 @@ button {
 }
 
 .rb-big.ai-entry.active {
-  /* neutral gray, shared with the docs/sheets Genspark entries */
+  /* neutral gray, shared with the docs/sheets duoOffice entries */
   background: var(--active-bg);
 }
 
@@ -2527,7 +2527,7 @@ body.vib .slide-list {
 .ai-attachments {
   display: flex;
   gap: 8px;
-  /* single row inside the prompt box, above the textarea (Genspark composer style):
+  /* single row inside the prompt box, above the textarea (duoOffice composer style):
      extra images run past the box edge and scroll horizontally.
      scroll (not auto) + zero bottom padding: the always-present 4px scrollbar lane
      doubles as the bottom padding, so overflowing never grows the strip and
@@ -2635,7 +2635,7 @@ body.vib .slide-list {
   background: var(--slides-att-bg);
 }
 
-/* the type icon sits in its own bordered white tile, like the Genspark card */
+/* the type icon sits in its own bordered white tile, like the duoOffice card */
 .ai-attachment-card-icon {
   display: flex;
   flex-shrink: 0;
@@ -3220,7 +3220,7 @@ body.vib .slide-list {
   margin-top: 18px;
 }
 
-/* Genspark DS modal footer buttons: secondary = bg-subtle, primary = black (#232425) */
+/* duoOffice DS modal footer buttons: secondary = bg-subtle, primary = black (#232425) */
 .modal-actions button {
   display: inline-flex;
   align-items: center;
@@ -3352,7 +3352,7 @@ body.vib .slide-list {
   margin-top: 5.6px;
 }
 
-/* 形状选项 / 文本选项 primary tabs under the pane header (Genspark style:
+/* 形状选项 / 文本选项 primary tabs under the pane header (duoOffice style:
    left-aligned text tabs, active = bold + text-colored underline) */
 .fp-tabs {
   display: flex;
@@ -3386,7 +3386,7 @@ body.vib .slide-list {
   border-bottom-color: var(--accent);
 }
 
-/* Second-level tabs (填充与线条 / 效果 / 大小与属性 …): Genspark segmented pill track —
+/* Second-level tabs (填充与线条 / 效果 / 大小与属性 …): duoOffice segmented pill track —
    pills sit in one rounded gray track; active = accent-filled pill */
 .fp-subtabs {
   display: flex;
@@ -5490,10 +5490,10 @@ body.vib .slide-list {
 }
 
 /* AI quick actions anchored right above the slide card (mirrors the Home-tab
-   Genspark AI group); absolute so it doesn't distort the zoom-box extent.
+   duoOffice AI group); absolute so it doesn't distort the zoom-box extent.
    z-index lifts it over the Konva stage's transparent 160px bleed, which
    otherwise swallows the clicks */
-/* Genspark SAS floating toolbar, matched to the reference stage-toolbar:
+/* duoOffice SAS floating toolbar, matched to the reference stage-toolbar:
    white bar (padding 3px 5px, ~35px tall); 24px borderless tool buttons
    with 12px #374151 labels; thin span dividers separate the groups; the
    assistant toggle shows a gray selected state while the panel is open */
@@ -5565,7 +5565,7 @@ body.vib .slide-list {
 }
 
 /* the brand mark uses currentColor and keeps the button's ink, not the blue */
-.stage-ai-btn svg.genspark-mark {
+.stage-ai-btn svg.ai-spark-mark {
   color: var(--slides-stagebar-ink);
 }
 

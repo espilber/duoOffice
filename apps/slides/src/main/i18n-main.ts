@@ -68,10 +68,10 @@ export const tMain = createI18n({
     errParseFailed: '文件解析失败',
     errImageNoText: '图片附件不提供文本,已作为图像随用户消息发送,直接看图即可',
     errNotImage: '不是支持的图片类型',
-    errGskNotLoggedIn: '未登录 Genspark:请点击下方「登录 Genspark」完成登录后重试',
+    errGskNotLoggedIn: '未登录 duoOffice:请点击下方「登录 duoOffice」完成登录后重试',
     errNoApiKey: '未配置 {provider} 的 API Key',
     errNoModel: '未配置模型名称',
-    errGskCli: 'gsk 未登录:请先运行 gsk login 登录 Genspark 账号',
+    errGskCli: 'provider 未登录:请先运行 provider login 登录 duoOffice 账号',
     errNoDeckAppend:
       '当前没有可追加的文稿（会话不存在）。请先用 mode:"replace" 生成首页，或改用原生工具新增页面。',
     errAppendFailed: '追加失败：{reason}',
@@ -177,10 +177,11 @@ export const tMain = createI18n({
     errImageNoText: 'Image attachments have no text; the image is sent along with the user message',
     errNotImage: 'not a supported image type',
     errGskNotLoggedIn:
-      'Not signed in to Genspark: click “Sign in to Genspark” below, sign in, then retry',
+      'Not signed in to duoOffice: click “Sign in to duoOffice” below, sign in, then retry',
     errNoApiKey: 'No API key configured for {provider}',
     errNoModel: 'No model name configured',
-    errGskCli: 'gsk not signed in: run gsk login to sign in to your Genspark account first',
+    errGskCli:
+      'provider not signed in: run provider login to sign in to your duoOffice account first',
     errNoDeckAppend:
       'No deck to append to (session missing). Generate the first page with mode:"replace" or add pages with the native tools.',
     errAppendFailed: 'Append failed: {reason}',
@@ -286,11 +287,11 @@ export const tMain = createI18n({
       '画像添付はテキストを提供しません。画像としてユーザー メッセージと一緒に送信済みのため、そのまま画像をご覧ください',
     errNotImage: 'サポートされていない画像形式です',
     errGskNotLoggedIn:
-      'Genspark にサインインしていません。下の「Genspark にサインイン」からサインインして再試行してください',
+      'duoOffice にサインインしていません。下の「duoOffice にサインイン」からサインインして再試行してください',
     errNoApiKey: '{provider} の API キーが設定されていません',
     errNoModel: 'モデル名が設定されていません',
     errGskCli:
-      'gsk が未サインインです。先に gsk login を実行して Genspark アカウントにサインインしてください',
+      'provider が未サインインです。先に provider login を実行して duoOffice アカウントにサインインしてください',
     errNoDeckAppend:
       '追加先のプレゼンテーションがありません（セッションが存在しません）。まず mode:"replace" で最初のページを生成するか、ネイティブ ツールでページを追加してください。',
     errAppendFailed: '追加に失敗しました: {reason}',
@@ -400,11 +401,11 @@ export const tMain = createI18n({
       '이미지 첨부는 텍스트를 제공하지 않으며, 이미지로 사용자 메시지와 함께 전송되었으니 이미지를 직접 확인하세요',
     errNotImage: '지원되는 이미지 형식이 아님',
     errGskNotLoggedIn:
-      'Genspark에 로그인되어 있지 않습니다. 아래 "Genspark 로그인"을 눌러 로그인한 뒤 다시 시도하세요',
+      'duoOffice에 로그인되어 있지 않습니다. 아래 "duoOffice 로그인"을 눌러 로그인한 뒤 다시 시도하세요',
     errNoApiKey: '{provider}의 API 키가 설정되지 않았습니다',
     errNoModel: '모델 이름이 설정되지 않았습니다',
     errGskCli:
-      'gsk가 로그인되어 있지 않습니다. 먼저 gsk login을 실행해 Genspark 계정에 로그인하세요',
+      'provider가 로그인되어 있지 않습니다. 먼저 provider login을 실행해 duoOffice 계정에 로그인하세요',
     errNoDeckAppend:
       '추가할 수 있는 문서가 없습니다(세션 없음). 먼저 mode:"replace"로 첫 페이지를 생성하거나 네이티브 도구로 페이지를 추가하세요.',
     errAppendFailed: '추가 실패: {reason}',
@@ -511,11 +512,11 @@ export const tMain = createI18n({
       "Les pièces jointes image ne fournissent pas de texte ; l'image a été envoyée avec le message de l'utilisateur, consultez-la directement",
     errNotImage: "n'est pas un type d'image pris en charge",
     errGskNotLoggedIn:
-      'Non connecté à Genspark : cliquez sur « Se connecter à Genspark » ci-dessous, connectez-vous puis réessayez',
+      'Non connecté à duoOffice : cliquez sur « Se connecter à duoOffice » ci-dessous, connectez-vous puis réessayez',
     errNoApiKey: 'Aucune clé API configurée pour {provider}',
     errNoModel: 'Aucun nom de modèle configuré',
     errGskCli:
-      "gsk non connecté : exécutez d'abord gsk login pour vous connecter à votre compte Genspark",
+      "provider non connecté : exécutez d'abord provider login pour vous connecter à votre compte duoOffice",
     errNoDeckAppend:
       'Aucune présentation à compléter (session inexistante). Générez d\'abord la première page avec mode:"replace" ou ajoutez des pages avec les outils natifs.',
     errAppendFailed: "Échec de l'ajout : {reason}",
@@ -627,11 +628,11 @@ export const tMain = createI18n({
       'Bildanlagen liefern keinen Text; das Bild wurde mit der Benutzernachricht gesendet, bitte direkt ansehen',
     errNotImage: 'kein unterstütztes Bildformat',
     errGskNotLoggedIn:
-      'Nicht bei Genspark angemeldet: Klicken Sie unten auf „Bei Genspark anmelden“, melden Sie sich an und versuchen Sie es erneut',
+      'Nicht bei duoOffice angemeldet: Klicken Sie unten auf „Bei duoOffice anmelden“, melden Sie sich an und versuchen Sie es erneut',
     errNoApiKey: 'Kein API-Schlüssel für {provider} konfiguriert',
     errNoModel: 'Kein Modellname konfiguriert',
     errGskCli:
-      'gsk nicht angemeldet: Führen Sie zuerst gsk login aus, um sich bei Ihrem Genspark-Konto anzumelden',
+      'provider nicht angemeldet: Führen Sie zuerst provider login aus, um sich bei Ihrem duoOffice-Konto anzumelden',
     errNoDeckAppend:
       'Keine Präsentation zum Anfügen vorhanden (Sitzung fehlt). Generieren Sie zuerst die erste Seite mit mode:"replace" oder fügen Sie Seiten mit den nativen Tools hinzu.',
     errAppendFailed: 'Anfügen fehlgeschlagen: {reason}',
@@ -742,11 +743,11 @@ export const tMain = createI18n({
       'Las imágenes adjuntas no proporcionan texto; la imagen se envió junto con el mensaje del usuario, consúltala directamente',
     errNotImage: 'no es un tipo de imagen compatible',
     errGskNotLoggedIn:
-      'No has iniciado sesión en Genspark: pulsa «Iniciar sesión en Genspark» abajo, inicia sesión y vuelve a intentarlo',
+      'No has iniciado sesión en duoOffice: pulsa «Iniciar sesión en duoOffice» abajo, inicia sesión y vuelve a intentarlo',
     errNoApiKey: 'No hay clave de API configurada para {provider}',
     errNoModel: 'No hay nombre de modelo configurado',
     errGskCli:
-      'gsk sin sesión iniciada: ejecuta primero gsk login para iniciar sesión en tu cuenta de Genspark',
+      'provider sin sesión iniciada: ejecuta primero provider login para iniciar sesión en tu cuenta de duoOffice',
     errNoDeckAppend:
       'No hay ninguna presentación a la que anexar (no existe la sesión). Genera primero la primera página con mode:"replace" o añade páginas con las herramientas nativas.',
     errAppendFailed: 'Error al anexar: {reason}',
@@ -856,10 +857,11 @@ export const tMain = createI18n({
       'สิ่งที่แนบเป็นรูปภาพไม่มีข้อความ รูปถูกส่งไปพร้อมข้อความของผู้ใช้แล้ว โปรดดูรูปโดยตรง',
     errNotImage: 'ไม่ใช่ชนิดรูปภาพที่รองรับ',
     errGskNotLoggedIn:
-      'ยังไม่ได้ลงชื่อเข้าใช้ Genspark: แตะ “ลงชื่อเข้าใช้ Genspark” ด้านล่าง แล้วลองอีกครั้ง',
+      'ยังไม่ได้ลงชื่อเข้าใช้ duoOffice: แตะ “ลงชื่อเข้าใช้ duoOffice” ด้านล่าง แล้วลองอีกครั้ง',
     errNoApiKey: 'ยังไม่ได้ตั้งค่า API Key ของ {provider}',
     errNoModel: 'ยังไม่ได้ตั้งค่าชื่อโมเดล',
-    errGskCli: 'gsk ยังไม่ได้เข้าสู่ระบบ: โปรดรัน gsk login เพื่อเข้าสู่ระบบบัญชี Genspark ก่อน',
+    errGskCli:
+      'provider ยังไม่ได้เข้าสู่ระบบ: โปรดรัน provider login เพื่อเข้าสู่ระบบบัญชี duoOffice ก่อน',
     errNoDeckAppend:
       'ไม่มีเอกสารให้เพิ่มต่อท้าย (ไม่มีเซสชัน) โปรดสร้างหน้าแรกด้วย mode:"replace" ก่อน หรือใช้เครื่องมือเนทีฟเพิ่มหน้าแทน',
     errAppendFailed: 'เพิ่มต่อท้ายไม่สำเร็จ: {reason}',
@@ -965,10 +967,11 @@ export const tMain = createI18n({
     errImageNoText:
       'Lampiran gambar tidak menyediakan teks; gambar telah dikirim bersama pesan pengguna, silakan lihat gambarnya langsung',
     errNotImage: 'bukan jenis gambar yang didukung',
-    errGskNotLoggedIn: 'Belum masuk ke Genspark: klik “Masuk ke Genspark” di bawah, lalu coba lagi',
+    errGskNotLoggedIn:
+      'Belum masuk ke duoOffice: klik “Masuk ke duoOffice” di bawah, lalu coba lagi',
     errNoApiKey: 'API Key untuk {provider} belum dikonfigurasi',
     errNoModel: 'Nama model belum dikonfigurasi',
-    errGskCli: 'gsk belum masuk: jalankan gsk login dulu untuk masuk ke akun Genspark',
+    errGskCli: 'provider belum masuk: jalankan provider login dulu untuk masuk ke akun duoOffice',
     errNoDeckAppend:
       'Tidak ada dokumen yang bisa ditambahi (sesi tidak ada). Buat halaman pertama dengan mode:"replace" dulu, atau tambahkan halaman dengan alat bawaan.',
     errAppendFailed: 'Gagal menambahkan: {reason}',
@@ -1079,11 +1082,11 @@ export const tMain = createI18n({
       'Вложения-изображения не содержат текста; изображение отправлено вместе с сообщением пользователя, просто посмотрите на него',
     errNotImage: 'неподдерживаемый тип изображения',
     errGskNotLoggedIn:
-      'Вы не вошли в Genspark: нажмите «Войти в Genspark» ниже, войдите и повторите попытку',
+      'Вы не вошли в duoOffice: нажмите «Войти в duoOffice» ниже, войдите и повторите попытку',
     errNoApiKey: 'API-ключ для {provider} не настроен',
     errNoModel: 'Не указано имя модели',
     errGskCli:
-      'gsk не авторизован: сначала выполните gsk login, чтобы войти в учётную запись Genspark',
+      'provider не авторизован: сначала выполните provider login, чтобы войти в учётную запись duoOffice',
     errNoDeckAppend:
       'Нет презентации для добавления страниц (сессия отсутствует). Сначала создайте первую страницу с mode:"replace" или добавьте страницы нативными инструментами.',
     errAppendFailed: 'Сбой добавления: {reason}',
@@ -1193,10 +1196,11 @@ export const tMain = createI18n({
       'المرفقات من نوع الصور لا توفر نصًا؛ وقد أُرسلت الصورة مع رسالة المستخدم، يكفي النظر إليها مباشرة',
     errNotImage: 'ليس نوع صورة مدعومًا',
     errGskNotLoggedIn:
-      'لم تسجّل الدخول إلى Genspark: انقر على «تسجيل الدخول إلى Genspark» أدناه ثم أعد المحاولة',
+      'لم تسجّل الدخول إلى duoOffice: انقر على «تسجيل الدخول إلى duoOffice» أدناه ثم أعد المحاولة',
     errNoApiKey: 'لم يتم تكوين مفتاح API لـ {provider}',
     errNoModel: 'لم يتم تكوين اسم النموذج',
-    errGskCli: 'gsk غير مسجَّل الدخول: شغّل gsk login أولًا لتسجيل الدخول إلى حساب Genspark',
+    errGskCli:
+      'provider غير مسجَّل الدخول: شغّل provider login أولًا لتسجيل الدخول إلى حساب duoOffice',
     errNoDeckAppend:
       'لا يوجد مستند يمكن الإلحاق به (الجلسة غير موجودة). أنشئ الصفحة الأولى باستخدام mode:"replace" أولًا، أو أضف صفحات بالأدوات الأصلية.',
     errAppendFailed: 'فشل الإلحاق: {reason}',
@@ -1303,10 +1307,11 @@ export const tMain = createI18n({
       'Anexos de imagem não têm texto; a imagem é enviada junto com a mensagem do usuário',
     errNotImage: 'não é um tipo de imagem suportado',
     errGskNotLoggedIn:
-      'Não conectado ao Genspark: clique em “Entrar no Genspark” abaixo, entre e tente novamente',
+      'Não conectado ao duoOffice: clique em “Entrar no duoOffice” abaixo, entre e tente novamente',
     errNoApiKey: 'Nenhuma chave de API configurada para {provider}',
     errNoModel: 'Nenhum nome de modelo configurado',
-    errGskCli: 'gsk não conectado: execute gsk login primeiro para entrar na sua conta Genspark',
+    errGskCli:
+      'provider não conectado: execute provider login primeiro para entrar na sua conta duoOffice',
     errNoDeckAppend:
       'Não há apresentação para anexar (sessão inexistente). Gere a primeira página com mode:"replace" ou adicione páginas com as ferramentas nativas.',
     errAppendFailed: 'Falha ao anexar: {reason}',
@@ -1417,11 +1422,11 @@ export const tMain = createI18n({
       "Gli allegati immagine non hanno testo; l'immagine viene inviata insieme al messaggio dell'utente",
     errNotImage: 'tipo di immagine non supportato',
     errGskNotLoggedIn:
-      'Accesso a Genspark non effettuato: fai clic su “Accedi a Genspark” qui sotto, accedi e riprova',
+      'Accesso a duoOffice non effettuato: fai clic su “Accedi a duoOffice” qui sotto, accedi e riprova',
     errNoApiKey: 'Nessuna chiave API configurata per {provider}',
     errNoModel: 'Nessun nome di modello configurato',
     errGskCli:
-      "gsk non ha effettuato l'accesso: esegui prima gsk login per accedere al tuo account Genspark",
+      "provider non ha effettuato l'accesso: esegui prima provider login per accedere al tuo account duoOffice",
     errNoDeckAppend:
       'Nessuna presentazione a cui aggiungere pagine (sessione mancante). Genera la prima pagina con mode:"replace" o aggiungi pagine con gli strumenti nativi.',
     errAppendFailed: 'Aggiunta non riuscita: {reason}',
@@ -1533,11 +1538,11 @@ export const tMain = createI18n({
       'Załączniki graficzne nie zawierają tekstu; obraz jest wysyłany razem z wiadomością użytkownika',
     errNotImage: 'nieobsługiwany typ obrazu',
     errGskNotLoggedIn:
-      'Nie zalogowano do Genspark: kliknij „Zaloguj się do Genspark” poniżej, zaloguj się i spróbuj ponownie',
+      'Nie zalogowano do duoOffice: kliknij „Zaloguj się do duoOffice” poniżej, zaloguj się i spróbuj ponownie',
     errNoApiKey: 'Nie skonfigurowano klucza API dla {provider}',
     errNoModel: 'Nie skonfigurowano nazwy modelu',
     errGskCli:
-      'gsk nie jest zalogowany: najpierw uruchom gsk login, aby zalogować się na konto Genspark',
+      'provider nie jest zalogowany: najpierw uruchom provider login, aby zalogować się na konto duoOffice',
     errNoDeckAppend:
       'Brak prezentacji do rozszerzenia (brak sesji). Najpierw wygeneruj pierwszą stronę z mode:"replace" albo dodaj strony narzędziami natywnymi.',
     errAppendFailed: 'Dołączanie nie powiodło się: {reason}',
@@ -1647,11 +1652,11 @@ export const tMain = createI18n({
       'Afbeeldingsbijlagen bevatten geen tekst; de afbeelding wordt samen met het gebruikersbericht verzonden',
     errNotImage: 'geen ondersteund afbeeldingstype',
     errGskNotLoggedIn:
-      'Niet aangemeld bij Genspark: klik hieronder op “Aanmelden bij Genspark”, meld u aan en probeer het opnieuw',
+      'Niet aangemeld bij duoOffice: klik hieronder op “Aanmelden bij duoOffice”, meld u aan en probeer het opnieuw',
     errNoApiKey: 'Geen API-sleutel geconfigureerd voor {provider}',
     errNoModel: 'Geen modelnaam geconfigureerd',
     errGskCli:
-      'gsk is niet aangemeld: voer eerst gsk login uit om u aan te melden bij uw Genspark-account',
+      'provider is niet aangemeld: voer eerst provider login uit om u aan te melden bij uw duoOffice-account',
     errNoDeckAppend:
       'Geen presentatie om aan toe te voegen (sessie ontbreekt). Genereer eerst de eerste pagina met mode:"replace" of voeg pagina\'s toe met de native tools.',
     errAppendFailed: 'Toevoegen mislukt: {reason}',
@@ -1760,11 +1765,11 @@ export const tMain = createI18n({
     errImageNoText: 'Lampiran imej tiada teks; imej dihantar bersama mesej pengguna',
     errNotImage: 'bukan jenis imej yang disokong',
     errGskNotLoggedIn:
-      'Belum log masuk ke Genspark: klik “Log masuk ke Genspark” di bawah, kemudian cuba lagi',
+      'Belum log masuk ke duoOffice: klik “Log masuk ke duoOffice” di bawah, kemudian cuba lagi',
     errNoApiKey: 'Kunci API untuk {provider} belum dikonfigurasikan',
     errNoModel: 'Nama model belum dikonfigurasikan',
     errGskCli:
-      'gsk belum log masuk: jalankan gsk login dahulu untuk log masuk ke akaun Genspark anda',
+      'provider belum log masuk: jalankan provider login dahulu untuk log masuk ke akaun duoOffice anda',
     errNoDeckAppend:
       'Tiada persembahan untuk ditambah (sesi tidak wujud). Jana halaman pertama dengan mode:"replace" dahulu, atau tambah halaman dengan alat asli.',
     errAppendFailed: 'Gagal menambah: {reason}',
@@ -1871,10 +1876,10 @@ export const tMain = createI18n({
     errParseFailed: 'ניתוח הקובץ נכשל',
     errImageNoText: 'קבצים מצורפים מסוג תמונה אינם מכילים טקסט; התמונה נשלחת יחד עם הודעת המשתמש',
     errNotImage: 'סוג תמונה שאינו נתמך',
-    errGskNotLoggedIn: 'לא מחובר ל-Genspark: לחץ על "התחבר ל-Genspark" למטה, התחבר ונסה שוב',
+    errGskNotLoggedIn: 'לא מחובר ל-duoOffice: לחץ על "התחבר ל-duoOffice" למטה, התחבר ונסה שוב',
     errNoApiKey: 'לא הוגדר מפתח API עבור {provider}',
     errNoModel: 'לא הוגדר שם מודל',
-    errGskCli: 'gsk אינו מחובר: הרץ תחילה gsk login כדי להיכנס לחשבון Genspark שלך',
+    errGskCli: 'provider אינו מחובר: הרץ תחילה provider login כדי להיכנס לחשבון duoOffice שלך',
     errNoDeckAppend:
       'אין מצגת להוסיף אליה (הפעלה חסרה). צור תחילה את העמוד הראשון עם mode:"replace" או הוסף עמודים בכלים המקוריים.',
     errAppendFailed: 'ההוספה נכשלה: {reason}',
@@ -1980,10 +1985,11 @@ export const tMain = createI18n({
     errImageNoText: 'छवि अनुलग्नक में टेक्स्ट नहीं होता; छवि उपयोगकर्ता संदेश के साथ भेजी जाती है',
     errNotImage: 'समर्थित छवि प्रकार नहीं है',
     errGskNotLoggedIn:
-      'Genspark में साइन इन नहीं है: नीचे “Genspark में साइन इन करें” पर क्लिक करें, साइन इन करें और फिर से कोशिश करें',
+      'duoOffice में साइन इन नहीं है: नीचे “duoOffice में साइन इन करें” पर क्लिक करें, साइन इन करें और फिर से कोशिश करें',
     errNoApiKey: '{provider} के लिए कोई API कुंजी कॉन्फ़िगर नहीं है',
     errNoModel: 'कोई मॉडल नाम कॉन्फ़िगर नहीं है',
-    errGskCli: 'gsk साइन इन नहीं है: पहले gsk login चलाकर अपने Genspark खाते में साइन इन करें',
+    errGskCli:
+      'provider साइन इन नहीं है: पहले provider login चलाकर अपने duoOffice खाते में साइन इन करें',
     errNoDeckAppend:
       'जोड़ने के लिए कोई प्रस्तुति नहीं है (सत्र मौजूद नहीं)। पहले mode:"replace" से पहला पृष्ठ बनाएँ, या नेटिव टूल से पृष्ठ जोड़ें।',
     errAppendFailed: 'जोड़ना विफल: {reason}',
@@ -2090,10 +2096,10 @@ export const tMain = createI18n({
     errParseFailed: '檔案解析失敗',
     errImageNoText: '圖片附件不提供文字,已作為影像隨使用者訊息傳送,直接看圖即可',
     errNotImage: '不是支援的圖片類型',
-    errGskNotLoggedIn: '未登入 Genspark:請點擊下方「登入 Genspark」完成登入後重試',
+    errGskNotLoggedIn: '未登入 duoOffice:請點擊下方「登入 duoOffice」完成登入後重試',
     errNoApiKey: '未設定 {provider} 的 API Key',
     errNoModel: '未設定模型名稱',
-    errGskCli: 'gsk 未登入:請先執行 gsk login 登入 Genspark 帳號',
+    errGskCli: 'provider 未登入:請先執行 provider login 登入 duoOffice 帳號',
     errNoDeckAppend:
       '目前沒有可附加的簡報（工作階段不存在）。請先用 mode:"replace" 產生首頁，或改用原生工具新增頁面。',
     errAppendFailed: '附加失敗：{reason}',

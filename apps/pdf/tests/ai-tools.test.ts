@@ -637,7 +637,7 @@ describe('get_outline / unknown tools', () => {
   })
 })
 
-describe('image_search / generate_image', () => {
+describe('image_search', () => {
   it('lists numbered results with direct links', async () => {
     const result = await executePdfTool(makeDeps(), call('image_search', { query: 'cat' }))
     expect(result.isError).toBeUndefined()
@@ -652,19 +652,6 @@ describe('image_search / generate_image', () => {
     const result = await executePdfTool(deps, call('image_search', { query: 'cat' }))
     expect(result.isError).toBe(true)
     expect(result.output).toContain('boom')
-  })
-
-  it('returns the generated image URL and errors when generation fails', async () => {
-    const ok = await executePdfTool(makeDeps(), call('generate_image', { prompt: 'a diagram' }))
-    expect(ok.isError).toBeUndefined()
-    expect(ok.output).toContain('https://img.example/generated.png')
-
-    const failed = await executePdfTool(
-      makeDeps({ generateImage: async () => ({ error: 'not logged in' }) }),
-      call('generate_image', { prompt: 'a diagram' }),
-    )
-    expect(failed.isError).toBe(true)
-    expect(failed.output).toContain('not logged in')
   })
 })
 

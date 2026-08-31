@@ -16,7 +16,11 @@ import { createSlidesSkill, formatSlideDump, type DeckAccess } from './slides-sk
 
 /** Kill switch: localStorage 'ai-slides-qc' = '0' disables the automatic pass */
 export function isQcEnabled(): boolean {
-  return localStorage.getItem('ai-slides-qc') !== '0'
+  try {
+    return globalThis.localStorage?.getItem('ai-slides-qc') !== '0'
+  } catch {
+    return true
+  }
 }
 
 /** Cost ceiling per generation run — beyond this the tail pages are skipped (reported to the user) */

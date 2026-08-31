@@ -3,7 +3,7 @@
  *  - generatedPageRange / mergeQcPages: which pages a landing marks for QC (incl. insert_at shifting)
  *  - createSlideFixSkill: tool allowlist wraps the full slides skill without losing the executor
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { AgentStreamRequest, AgentTransport } from '@genoffice/agent-core'
 import {
   generatedPageRange,
@@ -95,11 +95,19 @@ describe('createSlideFixSkill', () => {
 
 describe('isQcEnabled', () => {
   it("localStorage 'ai-slides-qc'='0' is the kill switch", () => {
-    localStorage.removeItem('ai-slides-qc')
-    expect(isQcEnabled()).toBe(true)
-    localStorage.setItem('ai-slides-qc', '0')
-    expect(isQcEnabled()).toBe(false)
-    localStorage.removeItem('ai-slides-qc')
+    const values = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+      removeItem: (key: string) => values.delete(key),
+    })
+    try {
+      expect(isQcEnabled()).toBe(true)
+      localStorage.setItem('ai-slides-qc', '0')
+      expect(isQcEnabled()).toBe(false)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
 
@@ -116,9 +124,11 @@ describe('vision capability fallback', () => {
 
   it('does not send screenshots to text-only models under a vision-capable provider', () => {
     const settings = defaultAiSettings()
-    settings.providers.genspark.model = 'deep-seek-v4-flash'
+    settings.provider = 'deepseek'
+    settings.providers.deepseek.model = 'deepseek-v4-flash'
     expect(settingsSupportVision(settings)).toBe(false)
-    settings.providers.genspark.model = 'claude-opus-4-7'
+    settings.provider = 'anthropic'
+    settings.providers.anthropic.model = 'claude-opus-4-7'
     expect(settingsSupportVision(settings)).toBe(true)
   })
 

@@ -1,47 +1,6 @@
 import type { AiProviderId, AiProviderMeta, AiSettings, LegacyAiSettings } from './types'
 
-/**
- * Genspark server-side LLM proxy endpoints. All three protocols share the
- * api_key from the gsk login; model ids follow the proxy's own naming scheme,
- * which differs from the official vendor ids.
- */
-export const GENSPARK_LLM_BASE_URLS = {
-  anthropic: 'https://www.genspark.ai/api/anthropic',
-  gemini: 'https://www.genspark.ai/api/llm_proxy/gemini/v1beta',
-  openai: 'https://www.genspark.ai/api/llm_proxy/v1',
-} as const
-
-/**
- * Splits GenOffice usage out of the proxy's default "Claw" billing bucket
- * (the backend attributes gsk-key traffic by X-Agent-Type). Only sent to the
- * Genspark proxy — never to direct vendor APIs.
- */
-export const GENSPARK_AGENT_TYPE = 'genoffice'
-
-export function gensparkAttributionHeaders(baseUrl?: string): Record<string, string> {
-  return baseUrl?.startsWith('https://www.genspark.ai')
-    ? { 'X-Agent-Type': GENSPARK_AGENT_TYPE }
-    : {}
-}
-
 export const AI_PROVIDERS: AiProviderMeta[] = [
-  {
-    id: 'genspark',
-    label: 'Genspark',
-    models: [
-      'claude-opus-4-7',
-      'claude-opus-4-8',
-      'claude-sonnet-4-6',
-      'gpt-5.6',
-      'gpt-5.6-terra',
-      'gpt-5.6-luna',
-      'gemini-3.1-pro-preview',
-      'gemini-3-flash-preview',
-      'gemini-3.7-flash',
-    ],
-    defaultModel: 'claude-opus-4-7',
-    keyPlaceholder: 'Not required - sign in to Genspark',
-  },
   {
     id: 'anthropic',
     label: 'Claude',
@@ -191,12 +150,7 @@ export function defaultAiSettings(
       baseUrl: meta.needsBaseUrl ? '' : undefined,
     }
   }
-  return { provider: 'genspark', providers, gskToolsEnabled: true }
-}
-
-/** false only on an explicit opt-out; absent (pre-toggle settings files) means on */
-export function cloudToolsEnabled(settings: Pick<AiSettings, 'gskToolsEnabled'>): boolean {
-  return settings.gskToolsEnabled !== false
+  return { provider: 'anthropic', providers }
 }
 
 /**
@@ -204,17 +158,13 @@ export function cloudToolsEnabled(settings: Pick<AiSettings, 'gskToolsEnabled'>)
  * (api-key providers need a key and a model id; providers flagged
  * needsBaseUrl also need a base URL). Anything else — including unknown
  * ids from a hand-edited
- * settings file — falls back to genspark, so a half-filled setup degrades
- * to the signed-in default instead of silently disabling AI.
+ * settings file — falls back to the default BYOK provider. A half-filled
+ * provider remains selected so the UI can ask for its missing key or model.
  */
 export function activeProvider(settings: AiSettings): AiProviderId {
   const provider = settings.provider
-  if (provider === 'genspark') return 'genspark'
   const meta = AI_PROVIDERS.find((m) => m.id === provider)
-  const config = settings.providers?.[provider]
-  if (!meta || !config?.apiKey || !config.model) return 'genspark'
-  if (meta.needsBaseUrl && !config.baseUrl) return 'genspark'
-  return provider
+  return meta ? provider : 'anthropic'
 }
 
 /**
@@ -261,7 +211,7 @@ function migrateRetiredModels(providers: AiSettings['providers']): AiSettings['p
  * settings file (already JSON-parsed); this function does no file I/O.
  */
 export function resolveAiSettings(
-  stored: Partial<AiSettings> & LegacyAiSettings,
+  stored: Omit<Partial<AiSettings>, 'provider'> & { provider?: string } & LegacyAiSettings,
   defaults: AiSettings,
 ): AiSettings {
   if (!stored.providers) {
@@ -274,9 +224,18 @@ export function resolveAiSettings(
     }
     return defaults
   }
-  return {
-    provider: stored.provider ?? defaults.provider,
-    providers: trimConfigs(migrateRetiredModels({ ...defaults.providers, ...stored.providers })),
-    gskToolsEnabled: stored.gskToolsEnabled ?? defaults.gskToolsEnabled ?? true,
+  const mergedProviders = { ...defaults.providers }
+  for (const meta of AI_PROVIDERS) {
+    const storedConfig = stored.providers?.[meta.id]
+    if (storedConfig) mergedProviders[meta.id] = storedConfig
   }
+  const providers = trimConfigs(migrateRetiredModels(mergedProviders))
+  const storedProvider = AI_PROVIDERS.some((meta) => meta.id === stored.provider)
+    ? (stored.provider as AiProviderId)
+    : undefined
+  const configuredProvider = AI_PROVIDERS.find((meta) => {
+    const config = providers[meta.id]
+    return !!config.apiKey && !!config.model && (!meta.needsBaseUrl || !!config.baseUrl)
+  })?.id
+  return { provider: storedProvider ?? configuredProvider ?? defaults.provider, providers }
 }
