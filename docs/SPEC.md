@@ -9,8 +9,8 @@ Eliminar de duoOffice la integración con GenSpark y su autenticación, mantenie
 - [x] Localizar y eliminar la integración del proveedor GenSpark.
 - [x] Eliminar el inicio de sesión, credenciales y flujos de cuenta vinculados a GenSpark.
 - [x] Mantener el resto de proveedores y sus opciones de configuración.
-- [ ] Identificar los mecanismos actuales de envío de estadísticas y proponer una política para duoOffice.
-- [ ] Identificar la comprobación de actualizaciones y proponer dónde y cómo realizarla.
+- [x] Identificar los mecanismos actuales de envío de estadísticas y definir una política para duoOffice.
+- [x] Identificar la comprobación de actualizaciones y definir dónde y cómo realizarla.
 - [x] Eliminar las rutas de ejecución de GenSpark —autenticación, dependencias, credenciales y red— además de sus elementos visuales.
 - [x] Separar el registro de proveedores y herramientas de IA para que los cambios futuros de GenOffice se puedan integrar sin reactivar GenSpark.
 
@@ -24,9 +24,9 @@ Eliminar de duoOffice la integración con GenSpark y su autenticación, mantenie
 
 ## Estado
 
-- Especificación: 🚧 En progreso
-- Implementación: 🚧 Desacoplamiento técnico completado; políticas de telemetría y actualización pendientes
-- Validación: 🚧 Tipos, unitarias, builds, auditoría estática y E2E superados; smoke del paquete por plataforma pendiente
+- Especificación: ✅ Completada
+- Implementación: ✅ Proveedor privado, telemetría y destinos privados eliminados; actualizaciones fijadas a GitHub Releases de duoOffice
+- Validación: ✅ Tipos, unitarias, builds, auditorías, E2E y paquete macOS superados; Windows y Linux quedan para su CI nativa
 
 ## Notas
 
@@ -37,3 +37,4 @@ Eliminar de duoOffice la integración con GenSpark y su autenticación, mantenie
 - El alcance y los criterios del rebranding se documentan en `REBRANDING.md`; la splash screen forma parte de ese trabajo.
 - Ocultar controles de GenSpark no es una eliminación válida: dejaría autenticación, credenciales y rutas de red dentro de la distribución. Para facilitar las actualizaciones desde GenOffice, se aislará el registro de proveedores y herramientas; el código eliminado podrá conservarse únicamente en una rama de seguimiento upstream, no en el binario de duoOffice.
 - La evidencia y el inventario de la implementación están en `PRIVATE-AI-AUDIT.md`.
+- La política aprobada de privacidad y actualizaciones está en `PRIVACY-AND-UPDATES.md`.

@@ -6,7 +6,7 @@
 - GenOffice es una fuente upstream, no un remoto del que se integren cambios sin revisión.
 - Cada adaptación se implementa en una rama temática, con una referencia explícita a la especificación y validación antes de fusionarse.
 - Electron se conserva como plataforma de escritorio.
-- Privacidad por defecto: GenSpark queda fuera de la distribución; telemetría y actualización automática permanecen desactivadas hasta que se defina y apruebe su diseño.
+- Privacidad por defecto: GenSpark y la telemetría quedan fuera de la distribución. Las comprobaciones de actualización usan únicamente GitHub Releases de duoOffice; descarga e instalación requieren acción del usuario.
 
 ## Fase 0 — Fundaciones del repositorio
 
@@ -40,7 +40,7 @@
 2. Separar el registro de proveedores y herramientas para que las integraciones sean módulos explícitos.
 3. Eliminar del binario y dependencias la autenticación, `@genspark/cli`, credenciales y dominios de GenSpark.
 4. Mantener operativos los proveedores BYOK y sus configuraciones; decidir alternativas o desactivación explícita para búsqueda, imágenes, multimedia y conversión que dependían de GenSpark.
-5. Definir por escrito la política de telemetría y actualizaciones. Hasta su aprobación, no se enviarán estadísticas ni se consultarán feeds de actualización.
+5. Definir por escrito la política de telemetría y actualizaciones: sin estadísticas de uso y con un feed público, visible y controlado por duoOffice.
 
 **Validación:** pruebas de configuración BYOK, análisis estático de dependencias y referencias, y pruebas de red que demuestren que duoOffice no lee credenciales ni contacta dominios de GenSpark.
 
@@ -93,15 +93,15 @@
 
 ## Matriz de validación continua
 
-| Área | Verificación mínima |
-| --- | --- |
-| Código | formato, typecheck, pruebas unitarias y análisis de dependencias |
-| Documentos | abrir, editar, guardar y reabrir archivos de prueba DOCX/XLSX/PPTX/PDF/Markdown |
-| Privacidad | ausencia de GenSpark en dependencias activas, credenciales, red y binario |
-| UI | pruebas visuales, contraste, foco, teclado y temas claro/oscuro |
-| Arranque | splash screen, inicio normal, recuperación tras error y apertura por asociación |
-| Plataformas | empaquetado y smoke tests en macOS, Windows y Linux |
-| Upstream | diff revisado, especificación, pruebas completas y decisión registrada |
+| Área        | Verificación mínima                                                             |
+| ----------- | ------------------------------------------------------------------------------- |
+| Código      | formato, typecheck, pruebas unitarias y análisis de dependencias                |
+| Documentos  | abrir, editar, guardar y reabrir archivos de prueba DOCX/XLSX/PPTX/PDF/Markdown |
+| Privacidad  | ausencia de GenSpark en dependencias activas, credenciales, red y binario       |
+| UI          | pruebas visuales, contraste, foco, teclado y temas claro/oscuro                 |
+| Arranque    | splash screen, inicio normal, recuperación tras error y apertura por asociación |
+| Plataformas | empaquetado y smoke tests en macOS, Windows y Linux                             |
+| Upstream    | diff revisado, especificación, pruebas completas y decisión registrada          |
 
 ## Primer bloque de ejecución
 

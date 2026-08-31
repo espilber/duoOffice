@@ -14,20 +14,17 @@ import {
 } from './update-window'
 
 /**
- * Full-package auto-update over the generic provider (Azure CDN).
+ * Full-package updates from the public duoOffice GitHub Releases feed.
  *
  * The release pipeline publishes `latest.yml` + the versioned installer to
- * the update channel prefix (production builds only). The packaged app reads
- * that URL from resources/app-update.yml, which electron-builder bakes in
- * from the `publish` config in apps/shell/electron-builder.cjs — the URL
- * itself is injected at build time via the GENOFFICE_UPDATE_URL env var and
- * is intentionally not committed to the repo.
+ * GitHub Releases. electron-builder writes the public repository coordinates
+ * to resources/app-update.yml from apps/shell/electron-builder.cjs.
  *
  * UX is the strong-guidance modal card (update-window.ts), not a native
  * dialog. Windows updates through the NSIS installer (latest.yml); macOS
  * through the zip target (latest-mac.yml); Linux through the AppImage
  * target (latest-linux.yml) — all published by the internal release
- * pipeline. On Linux only AppImage runs self-update (electron-updater
+ * release. On Linux only AppImage runs self-update (electron-updater
  * replaces the .AppImage file in place, no root needed); deb installs have
  * no updater — users upgrade via `apt install ./<new>.deb`.
  *

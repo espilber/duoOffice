@@ -24,7 +24,13 @@
 - Añadida la puerta automática `npm run check:no-private-ai`, que audita fuentes distribuibles, manifiestos y lockfile; superada sobre 829 archivos.
 - Validación del bloque: formato, typecheck global, compilación de los seis workspaces y pruebas de todos los módulos superadas. Se estabilizaron dos pruebas dependientes del entorno (`PassThrough` y almacenamiento local) sin alterar comportamiento productivo.
 - E2E de escritorio sobre la aplicación adaptada: 38 pruebas superadas y 5 regresiones visuales omitidas por configuración, sin fallos.
-- Pendiente antes de cerrar la fase: smoke del paquete por plataforma y definición de las políticas propias de telemetría y actualización.
+- Auditada y eliminada la telemetría heredada completa: tracker GA4, UUID de instalación, eventos, credenciales de empaquetado, IPC, ajustes, onboarding y textos asociados. duoOffice no envía estadísticas de uso.
+- Definida la política de actualización: feed público de GitHub Releases `espilber/duoOffice`, estable por defecto y beta voluntaria; comprobación automática, pero descarga e instalación siempre iniciadas por el usuario.
+- Corregido el empaquetador, que todavía intentaba copiar `@genspark/cli`, `commander` y `ws`; también se retiró la dependencia raíz `ws` y se sustituyeron los metadatos privados de Linux.
+- Añadida la puerta `npm run check:privacy-boundaries` y ampliada `check:no-private-ai` para cubrir configuración de empaquetado y seguridad.
+- Validación del bloque de privacidad/actualizaciones: 180 pruebas unitarias del shell, typecheck, build de los seis workspaces y 38 E2E correctos (5 visuales omitidas).
+- Generado y auditado un ZIP macOS arm64: sin recursos privados y con `app-update.yml` fijado a GitHub. El empaquetado nativo de Windows/Linux queda para CI en esas plataformas.
+- La fase de independencia y privacidad queda completada. El siguiente bloque es el rebranding técnico y la experiencia de arranque.
 
 ## Referencias
 

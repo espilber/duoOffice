@@ -4,7 +4,12 @@ import { extname, join, relative } from 'node:path'
 const root = process.cwd()
 const forbidden = /genspark|@genspark|genspark\.ai|\bgsk\b/i
 const sourceExtensions = new Set(['.cjs', '.css', '.html', '.js', '.jsx', '.mjs', '.ts', '.tsx'])
-const files = ['package.json', 'package-lock.json']
+const files = [
+  'package.json',
+  'package-lock.json',
+  'apps/shell/electron-builder.cjs',
+  '.github/ISSUE_TEMPLATE/config.yml',
+]
 
 async function collectSources(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {

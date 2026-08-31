@@ -1,68 +1,38 @@
-# GenOffice Privacy
+# duoOffice Privacy
 
-Last updated: August 26, 2026
+Last updated: August 31, 2026
 
-GenOffice opens, edits, and saves documents locally. Document editing does not
-upload files to GenOffice. AI features require a network connection and send
-requests only when you use them.
+duoOffice opens, edits, and saves documents locally. Document editing does not
+upload files to duoOffice or to a duoOffice-operated server.
 
-## Usage analytics
+## Usage reporting
 
-Usage analytics is enabled by default in packaged official builds, including
-the initial app launch before the onboarding notice is shown. Onboarding
-explains what is collected and where to turn it off.
+duoOffice does not collect or transmit usage statistics. The application has
+no telemetry endpoint, install identifier, event tracker, or analytics consent
+setting.
 
-You can disable reporting at any time under **Settings → General → Send
-anonymous usage statistics**. An explicit opt-out is remembered and stops all
-subsequent analytics events.
+## AI providers
 
-### Events and parameters
+AI features require a network connection and run only when you invoke them.
+Requests are sent directly to the provider and endpoint you configure. Their
+contents can include your prompt and the document context required to perform
+the requested action. The selected provider's privacy policy and retention
+terms apply.
 
-When enabled, the app sends these events:
+API keys are stored locally using the operating system's credential storage
+where supported. duoOffice does not proxy AI requests through a duoOffice or
+GenSpark service.
 
-- `install_first_launch` — marks the first analytics-enabled use of a newly
-  assigned anonymous `client_id`; used for retention cohorts
-- `app_launch` — no event-specific parameter
-- `file_open` — `ext`, the file extension such as `docx` or `xlsx`
-- `file_new` — `kind`, one of `docx`, `xlsx`, `pptx`, `md`, or `pdf`
+## Update checks
 
-Every event includes:
+Packaged builds check the public `espilber/duoOffice` GitHub Releases feed for
+updates. The first check runs shortly after launch and later checks run
+periodically while the app is open. The app does not download or install an
+update until the user explicitly chooses to do so.
 
-- `app_version`
-- `platform`
-- `os_version`
-- `ui_lang`
-- a per-process `session_id` derived from the process start time
-- `engagement_time_msec` with the fixed value `100`
+As the HTTPS recipient, GitHub receives the connection's public IP address,
+standard transport metadata, and the information needed to select a compatible
+release, such as the installed version, platform, architecture, and selected
+stable or beta channel. duoOffice sends no document content in an update check.
 
-When available, the payload also includes `country_id`, the two-letter country
-code from the operating system's regional locale. This can differ from the
-user's physical location.
-
-The Google Analytics 4 payload also uses a random install UUID as `client_id`.
-The country code is sent through GA4's country-only `user_location` field; the
-app does not send a city or region. Neither identifier is a provider account or
-email address.
-
-## Network information
-
-Events are sent to Google Analytics 4 using the Measurement Protocol over
-HTTPS. As the HTTPS recipient, Google necessarily sees the connection's public
-IP address and transport metadata, and may use them for coarse geolocation and
-security or spam-abuse processing. GenOffice does not add an IP address to the
-event payload.
-
-## Data not collected by analytics
-
-GenOffice analytics never sends:
-
-- document content
-- file names
-- file paths
-- provider account identity
-- email addresses
-
-The analytics metadata is injected only into packaged official builds and is
-not part of this repository. Source builds and forks without that packaged
-metadata install a no-op tracker and send no usage analytics; all features work
-the same.
+Source and unpackaged development builds do not perform update checks.

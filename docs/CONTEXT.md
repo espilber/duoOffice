@@ -9,7 +9,8 @@ duoOffice es una versión personalizada de GenOffice, basada en su repositorio c
 - Mantener el resto de proveedores de IA y sus configuraciones.
 - Eliminar la integración y el inicio de sesión de GenSpark.
 - Revisar las actualizaciones de GenOffice antes de incorporarlas.
-- Definir posteriormente el mecanismo y destino de estadísticas y actualizaciones; la implementación heredada todavía debe revisarse antes de distribución.
+- duoOffice no incorpora telemetría de uso. Cualquier propuesta futura requerirá revisión separada, consentimiento opt-in, infraestructura propia y política de retención explícita.
+- Las actualizaciones se consultan exclusivamente en GitHub Releases de `espilber/duoOffice`. La descarga y la instalación requieren una acción explícita del usuario; estable es el canal predeterminado y beta es voluntario.
 - Electron es la plataforma de escritorio de duoOffice. Tauri queda descartado.
 - duoOffice requiere rebranding completo, incluyendo identidad visual, IDs técnicos, rutas, servicios de publicación y una splash screen de inicio.
 - GenSpark se eliminará de la distribución en todas sus capas; no basta con ocultar sus paneles. La integración de cambios de GenOffice se apoyará en una arquitectura de registro de proveedores/herramientas y una rama de seguimiento upstream.
@@ -24,4 +25,6 @@ duoOffice es una versión personalizada de GenOffice, basada en su repositorio c
 
 El desacoplamiento técnico del proveedor privado está implementado en `feature/remove-genspark`: no quedan dependencias, dominios, credenciales ni rutas ejecutables privadas en las fuentes distribuibles. La auditoría automática y el detalle están en `PRIVATE-AI-AUDIT.md`.
 
-El bloque continúa abierto hasta validar el smoke del paquete por plataforma y decidir telemetría y actualizaciones. El E2E de escritorio adaptado ya está superado.
+La fase de independencia y privacidad está completada. Además del desacoplamiento privado, se eliminó la telemetría heredada y se fijaron las actualizaciones al repositorio público de duoOffice. El paquete macOS arm64 y su feed embebido están validados; Windows y Linux se validarán en CI nativa durante la fase de distribución.
+
+El siguiente bloque es el rebranding técnico completo y la experiencia de arranque, incluida la splash screen.

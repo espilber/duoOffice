@@ -49,16 +49,7 @@ import {
   showSaveDialogWithMemory,
   windowMenuTemplate,
 } from '@genoffice/electron-utils'
-import { readAppSettings, writeAppSetting, writeAppSettings } from './app-settings'
-import {
-  ANALYTICS_ENABLED_KEY,
-  analyticsEnabledFrom,
-  createAnalytics,
-  ensureAnalyticsClientState,
-  extractPackagedAnalyticsKeys,
-  markAnalyticsFirstLaunchSent,
-} from './analytics'
-import type { Analytics, AnalyticsKeys } from './analytics'
+import { readAppSettings, writeAppSetting } from './app-settings'
 import {
   LAST_RUN_VERSION_KEY,
   STAR_PROMPT_KEY,
@@ -305,73 +296,6 @@ function currentTheme(): UiTheme {
   const saved = readAppSettings(APP_SETTINGS_PATH()).theme
   cachedTheme = saved === 'light' || saved === 'dark' ? saved : 'system'
   return cachedTheme
-}
-
-// ---- anonymous usage analytics (see src/main/analytics.ts) ----
-// Stays a no-op until initAnalytics() runs at startup; keyless builds
-// (source/forks) keep the no-op forever, so every track() call is safe.
-
-let analytics: Analytics = { active: false, track: () => {} }
-
-let cachedAnalyticsEnabled: boolean | null = null
-
-function analyticsEnabled(): boolean {
-  cachedAnalyticsEnabled ??= analyticsEnabledFrom(readAppSettings(APP_SETTINGS_PATH()))
-  return cachedAnalyticsEnabled
-}
-
-function resolveAnalyticsKeys(): AnalyticsKeys | null {
-  // Only packaged extraMetadata is authoritative. Source/dev runs never read
-  // runtime credentials and therefore remain a strict no-op.
-  if (!app.isPackaged) return null
-  try {
-    return extractPackagedAnalyticsKeys(
-      JSON.parse(readFileSync(join(app.getAppPath(), 'package.json'), 'utf8')),
-      app.isPackaged,
-    )
-  } catch {
-    return null
-  }
-}
-
-function persistAnalyticsPreference(enabled: boolean): boolean {
-  const previous = cachedAnalyticsEnabled
-  // Change the in-memory gate before touching disk. The synchronous atomic
-  // write prevents another event from being handled in between.
-  cachedAnalyticsEnabled = enabled
-  try {
-    writeAppSettings(APP_SETTINGS_PATH(), { [ANALYTICS_ENABLED_KEY]: enabled })
-    return true
-  } catch (error) {
-    cachedAnalyticsEnabled = previous
-    throw error
-  }
-}
-
-function initAnalytics(): void {
-  try {
-    let clientState: ReturnType<typeof ensureAnalyticsClientState> | null = null
-    const getClientState = () => (clientState ??= ensureAnalyticsClientState(APP_SETTINGS_PATH()))
-    analytics = createAnalytics({
-      keys: resolveAnalyticsKeys(),
-      getClientId: () => getClientState().clientId,
-      isEnabled: analyticsEnabled,
-      shouldTrackFirstLaunch: () => getClientState().firstLaunchPending,
-      onFirstLaunchSent: () => markAnalyticsFirstLaunchSent(APP_SETTINGS_PATH()),
-      // Country-only approximation from OS regional settings. This avoids an
-      // IP lookup while populating GA4's built-in Country dimension.
-      getCountryCode: () => app.getLocaleCountryCode(),
-      // evaluated per event: ui_lang follows live language switches
-      baseParams: () => ({
-        app_version: app.getVersion(),
-        platform: process.platform,
-        os_version: process.getSystemVersion(),
-        ui_lang: currentLang(),
-      }),
-    })
-  } catch {
-    // analytics must never block startup
-  }
 }
 
 // ---- first-run onboarding ----
@@ -2592,11 +2516,7 @@ function registerDroppedFilesIpc(): void {
 /** the single router: extension decides which module owns the file; false = nothing opened */
 function openDocumentPath(filePath: string): boolean {
   const opened = routeDocumentPath(filePath)
-  if (opened) {
-    recordStarPromptDocOpen()
-    // extension only — never the file name or path
-    analytics.track('file_open', { ext: extname(filePath).slice(1).toLowerCase() })
-  }
+  if (opened) recordStarPromptDocOpen()
   return opened
 }
 
@@ -2680,10 +2600,8 @@ async function newSheetTab(): Promise<void> {
     writeFileSync(filePath, await blankXlsxBuffer())
     // eligible for content-derived auto-rename after the first AI generation
     markSheetsUntitledPath(filePath)
-    // route directly (not via openDocumentPath) so creating a sheet emits
-    // only file_new — the file_open event is reserved for opening existing files
+    // Route directly so the newly created file counts as one document open.
     if (routeDocumentPath(filePath)) recordStarPromptDocOpen()
-    analytics.track('file_new', { kind: 'xlsx' })
   } catch (err) {
     console.warn('[shell] blank workbook create failed, opening in-memory blank tab:', err)
     try {
@@ -2710,7 +2628,6 @@ function newDocTab(): void {
     tabManager?.openDocsTab(undefined, { newBlank: true })
     // creating a document is as much a value moment as opening one
     recordStarPromptDocOpen()
-    analytics.track('file_new', { kind: 'docx' })
   } catch (err) {
     surfaceNewTabError(err)
   }
@@ -2720,7 +2637,6 @@ function newSlideTab(): void {
   try {
     tabManager?.openSlidesTab()
     recordStarPromptDocOpen()
-    analytics.track('file_new', { kind: 'pptx' })
   } catch (err) {
     surfaceNewTabError(err)
   }
@@ -2730,7 +2646,6 @@ function newMarkdownTab(): void {
   try {
     tabManager?.openMarkdownTab()
     recordStarPromptDocOpen()
-    analytics.track('file_new', { kind: 'md' })
   } catch (err) {
     surfaceNewTabError(err)
   }
@@ -2749,10 +2664,8 @@ async function newPdfTab(): Promise<void> {
     markPdfUntitledPath(filePath)
     // PDF has no opened/saved shell hook — assign the pending project right here
     applyPendingProject(filePath)
-    // route directly (not via openDocumentPath) so creating a pdf emits only
-    // file_new and counts one doc-open — same as the blank workbook above
+    // Route directly so the new PDF counts as one document open.
     if (routeDocumentPath(filePath)) recordStarPromptDocOpen()
-    analytics.track('file_new', { kind: 'pdf' })
   } catch (err) {
     surfaceNewTabError(err)
   }
@@ -3000,13 +2913,6 @@ function registerHomeIpc(): void {
     writeAppSetting(APP_SETTINGS_PATH(), 'theme', theme)
     nativeTheme.themeSource = theme
     for (const wc of webContents.getAllWebContents()) wc.send('app:theme-changed', theme)
-  })
-
-  ipcMain.handle(HOME_CHANNELS.getAnalyticsEnabled, (): boolean => analyticsEnabled())
-
-  ipcMain.handle(HOME_CHANNELS.setAnalyticsEnabled, (_event, enabled: unknown): boolean => {
-    if (typeof enabled !== 'boolean') return false
-    return persistAnalyticsPreference(enabled)
   })
 
   // effective folder where new/untitled files land; the editor mains resolve
@@ -4030,8 +3936,6 @@ app.whenReady().then(async () => {
   } catch {
     // settings write failures must never block startup
   }
-  initAnalytics()
-  analytics.track('app_launch')
   startSheetsCaptureServer()
   createShellWindow()
   // deferred to ready: labels need currentLang(), which reads app.getLocale()

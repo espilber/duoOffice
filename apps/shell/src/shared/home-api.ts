@@ -115,16 +115,12 @@ export interface HomeApi {
   getAppVersion(): Promise<string>
   /** whether the first-run onboarding has been completed or skipped (persisted in userData/app-settings.json) */
   onboardingSeen(): Promise<boolean>
-  /** mark onboarding done; analytics remains enabled unless separately opted out */
+  /** mark onboarding done */
   setOnboardingSeen(): Promise<boolean>
   /** current UI theme preference (persisted in userData/app-settings.json) */
   getTheme(): Promise<UiTheme>
   /** switch + persist the UI theme; broadcasts 'app:theme-changed' to all web contents */
   setTheme(theme: UiTheme): Promise<void>
-  /** whether anonymous usage statistics are enabled (default true in official builds) */
-  getAnalyticsEnabled(): Promise<boolean>
-  /** persist an explicit analytics opt-in or opt-out */
-  setAnalyticsEnabled(enabled: boolean): Promise<boolean>
   /** effective default save folder for new/untitled files (configured in userData/app-settings.json, falls back to <Documents>/GenOffice) */
   getDefaultSaveDir(): Promise<string>
   /** directory picker to change the default save folder; resolves to the new folder, or null when canceled or the pick was unusable */
@@ -279,8 +275,6 @@ export const HOME_CHANNELS = {
   setOnboardingSeen: 'home:set-onboarding-seen',
   getTheme: 'home:get-theme',
   setTheme: 'home:set-theme',
-  getAnalyticsEnabled: 'home:get-analytics-enabled',
-  setAnalyticsEnabled: 'home:set-analytics-enabled',
   getDefaultSaveDir: 'home:get-default-save-dir',
   pickDefaultSaveDir: 'home:pick-default-save-dir',
   openGenTeam: 'home:open-genteam',

@@ -8,7 +8,7 @@ Las fuentes distribuibles de duoOffice ya no contienen el proveedor privado, su 
 npm run check:no-private-ai
 ```
 
-La puerta examina manifiestos, lockfile y código fuente de `apps/*/src` y `packages/*/src`. Las referencias históricas necesarias permanecen únicamente en documentación de upstream y pruebas de migración que no se distribuyen.
+La puerta examina manifiestos, lockfile, configuración de empaquetado, plantilla de seguridad y código fuente de `apps/*/src` y `packages/*/src`. Las referencias históricas necesarias permanecen únicamente en documentación de upstream y pruebas de migración que no se distribuyen.
 
 ## Arquitectura resultante
 
@@ -23,15 +23,16 @@ La puerta examina manifiestos, lockfile y código fuente de `apps/*/src` y `pack
 
 ## Validación completada
 
-- `npm run check:no-private-ai`: 829 archivos, sin incidencias.
+- `npm run check:no-private-ai`: 830 archivos, sin incidencias.
+- `npm run check:privacy-boundaries`: sin endpoints ni API de telemetría; origen de actualizaciones y descarga manual verificados.
 - `npm run format:check`: correcto.
 - `npm run typecheck`: correcto en todos los workspaces.
 - `npm run build:all`: correcto en Docs, Sheets, Slides, PDF, Markdown y Shell.
 - Pruebas unitarias por workspace: correctas, incluidas 139 pruebas Rust de Sheets.
 - `npm run test:e2e`: 38 pruebas superadas y 5 visuales omitidas por configuración, sin fallos.
+- Paquete ZIP macOS arm64 generado sin recursos privados. Su `app-update.yml` embebido contiene exclusivamente `espilber/duoOffice`, proveedor `github` y canal `latest`.
 
 ## Pendiente
 
-- Smoke del paquete por plataforma.
-- Decisión y diseño propios para telemetría y actualizaciones.
+- Empaquetado y smoke nativos de Windows y Linux en sus respectivos runners.
 - Rebranding técnico completo de nombres de paquetes, rutas, activos y metadatos, que pertenece a la fase siguiente.

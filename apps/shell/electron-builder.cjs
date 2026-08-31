@@ -1,24 +1,6 @@
 /**
- * electron-builder configuration (moved out of package.json "build" so the
- * auto-update feed URL can be injected at build time instead of living in
- * the repo).
- *
- * GENOFFICE_UPDATE_URL — public base URL of the update channel (the generic
- * provider prefix that serves latest.yml / latest-mac.yml). Required for
- * release builds; CI provides it as a repository secret. For local release
- * builds put it in apps/shell/electron-builder.env (gitignored) — the
- * electron-builder CLI loads that file automatically.
- *
- * When the variable is unset (forks, PR smoke builds, plain local packaging)
- * the publish config is omitted: electron-builder then bakes no
- * app-update.yml into the app and in-app auto-update stays disabled.
- *
- * GENOFFICE_GA4_MEASUREMENT_ID / GENOFFICE_GA4_API_SECRET — GA4 Measurement
- * Protocol credentials for anonymous usage analytics, injected the same way
- * (CI secrets, or apps/shell/electron-builder.env locally). They are written
- * into the packaged app's package.json via extraMetadata and read back by
- * src/main/analytics.ts. When either is unset — every source/fork build —
- * nothing is injected and the app runs with analytics fully disabled.
+ * electron-builder configuration. Update metadata is pinned below to the
+ * public duoOffice GitHub Releases feed.
  *
  * GENOFFICE_FONT_CDN_URL — base URL for the curated downloadable-font catalog.
  * Official release jobs inject it through extraMetadata so the endpoint stays
@@ -43,9 +25,6 @@ function normalizeHttpsBaseUrl(name, value) {
   }
 }
 
-const updateUrl = process.env.GENOFFICE_UPDATE_URL
-const ga4MeasurementId = process.env.GENOFFICE_GA4_MEASUREMENT_ID
-const ga4ApiSecret = process.env.GENOFFICE_GA4_API_SECRET
 const fontCdnUrl = normalizeHttpsBaseUrl(
   'GENOFFICE_FONT_CDN_URL',
   process.env.GENOFFICE_FONT_CDN_URL,
@@ -60,19 +39,12 @@ const fontCdnUrl = normalizeHttpsBaseUrl(
 // switch.
 const includeMacX64 = process.env.GENOFFICE_MAC_X64 === '1'
 
-// The gsk CLI tree below is copied verbatim from node_modules, and the
-// nested commander path depends on npm's current hoisting layout — fail the
-// build with a clear message if an install ever changes it, instead of
-// shipping an installer with a broken gsk runtime.
 // LICENSES.chromium.html only exists after the Electron binary download —
 // since Electron 42 that no longer happens during `npm ci` (the postinstall
 // script was replaced by the lazy `install-electron` bin), and electron-builder
 // exits 0 on a missing extraResources source, so without this check the
 // installer would silently ship without the Chromium license.
 for (const rel of [
-  '../../node_modules/@genspark/cli',
-  '../../node_modules/@genspark/cli/node_modules/commander',
-  '../../node_modules/ws',
   '../../node_modules/electron/dist/LICENSES.chromium.html',
   '../../node_modules/@embedpdf/pdfium/dist/pdfium.wasm',
   '../pdf/node_modules/harfbuzzjs/hb-subset.wasm',
@@ -272,18 +244,6 @@ const config = {
       from: '../../packages/pdf2docx/ocr-helper/win-ocr.exe',
       to: 'ocr/win-ocr.exe',
     },
-    {
-      from: '../../node_modules/@genspark/cli',
-      to: 'gsk/node_modules/@genspark/cli',
-    },
-    {
-      from: '../../node_modules/@genspark/cli/node_modules/commander',
-      to: 'gsk/node_modules/commander',
-    },
-    {
-      from: '../../node_modules/ws',
-      to: 'gsk/node_modules/ws',
-    },
   ],
   // `mimeType` is read only by the Linux target, where it becomes the
   // desktop entry's MimeType= list; associations without it are dropped
@@ -423,14 +383,14 @@ const config = {
     // so apt sees the new packages as the same lineage. Homepage comes from
     // package.json "homepage"; the Package field is pinned in the deb block
     // below (packageName is a per-target option, rejected here by the schema).
-    maintainer: 'Mainfunc, Inc. <team@genspark.ai>',
-    vendor: 'Mainfunc, Inc. <team@genspark.ai>',
+    maintainer: 'duoOffice Contributors <espilber@users.noreply.github.com>',
+    vendor: 'duoOffice Contributors',
     category: 'Office',
     // Icon SET directory, not the single 1024px png: electron-builder does
     // not resize a lone png, so deb/rpm would install only
     // hicolor/1024x1024/apps/genoffice.png — a size absent from the hicolor
     // theme index, leaving GNOME/KDE launchers on the generic fallback icon
-    // (genspark-ai/genoffice#90). The set ships every standard raster size.
+    // in some desktop environments. The set ships every standard raster size.
     icon: 'build/icons',
     // mac and win name the binary from productName; linux instead derives it
     // from package.json "name", and "@genoffice/shell" sanitizes to the
@@ -496,6 +456,14 @@ const config = {
     sign: true,
   },
   afterAllArtifactBuild: 'build/notarize-dmg.js',
+  publish: [
+    {
+      provider: 'github',
+      owner: 'espilber',
+      repo: 'duoOffice',
+      channel: 'latest',
+    },
+  ],
 }
 
 // Windows in-package code signing. Security features that judge every PE
@@ -531,25 +499,9 @@ if (winSignMode) {
   }
 }
 
-if (updateUrl) {
-  config.publish = [
-    {
-      provider: 'generic',
-      url: updateUrl.replace(/\/+$/, ''),
-      channel: 'latest',
-    },
-  ]
-}
-
 // CI's "-c.extraMetadata.version=..." CLI override deep-merges with this block,
 // so the version and all injected feature settings survive together.
 const extraMetadata = {}
-if (ga4MeasurementId && ga4ApiSecret) {
-  extraMetadata.genofficeAnalytics = {
-    measurementId: ga4MeasurementId,
-    apiSecret: ga4ApiSecret,
-  }
-}
 if (fontCdnUrl) extraMetadata.genofficeFontCdn = { baseUrl: fontCdnUrl }
 if (Object.keys(extraMetadata).length) config.extraMetadata = extraMetadata
 
