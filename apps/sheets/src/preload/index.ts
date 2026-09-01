@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
-import type { AiChatResponse, AiSettings, AiStreamChunk } from '@genoffice/ai-provider'
-import type { ProjectApi } from '@genoffice/project-store'
+import type { AiChatResponse, AiSettings, AiStreamChunk } from '@duooffice/ai-provider'
+import type { ProjectApi } from '@duooffice/project-store'
 import type {
   AttachmentAddResult,
   AttachmentImageResult,
@@ -42,7 +42,7 @@ import {
   MAX_SAVE_EDITS_TOTAL,
   SAVE_EDITS_CHUNK_JSON_MAX,
 } from '../shared/ipc-channels'
-import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { installDropOpenBridge } from '@duooffice/electron-utils/drop-open'
 
 const desktopApi: DesktopApi = {
   getLanguage: () => ipcRenderer.invoke('app:get-language'),

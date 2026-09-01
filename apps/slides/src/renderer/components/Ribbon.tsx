@@ -12,14 +12,14 @@ import React, {
   type ReactNode,
 } from 'react'
 import type { AnimEffectKind, GradientFillSpec, TransitionKind } from '../../shared/ipc'
-import type { ChartStyleInfo } from '@genoffice/pptx-render'
+import type { ChartStyleInfo } from '@duooffice/pptx-render'
 import {
   useDismissablePopover,
   Dropdown,
   THEME_COLORS,
   THEME_COLOR_SHADES,
   STANDARD_COLORS,
-} from '@genoffice/ui'
+} from '@duooffice/ui'
 import { getRecentColors, pushRecentColor } from '../recent-colors'
 import { ICON_COLORS } from '../insert-presets'
 import { THEME_PRESETS, type SlideThemePreset } from '../themes'

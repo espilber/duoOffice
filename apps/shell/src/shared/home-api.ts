@@ -1,7 +1,7 @@
-import type { AiChatResponse, AiProviderMeta, AiSettings } from '@genoffice/ai-provider'
+import type { AiChatResponse, AiProviderMeta, AiSettings } from '@duooffice/ai-provider'
 import type { UpdateChannel } from './update-api'
 
-/** UI language; kept self-contained here (mirrors Lang in @genoffice/i18n) */
+/** UI language; kept self-contained here (mirrors Lang in @duooffice/i18n) */
 export type UiLanguage =
   | 'zh'
   | 'en'
@@ -121,14 +121,14 @@ export interface HomeApi {
   getTheme(): Promise<UiTheme>
   /** switch + persist the UI theme; broadcasts 'app:theme-changed' to all web contents */
   setTheme(theme: UiTheme): Promise<void>
-  /** effective default save folder for new/untitled files (configured in userData/app-settings.json, falls back to <Documents>/GenOffice) */
+  /** effective default save folder for new/untitled files (configured in userData/app-settings.json, falls back to <Documents>/duoOffice) */
   getDefaultSaveDir(): Promise<string>
   /** directory picker to change the default save folder; resolves to the new folder, or null when canceled or the pick was unusable */
   pickDefaultSaveDir(): Promise<string | null>
   /** theme switched anywhere (broadcast from the main process) */
   onThemeChanged(handler: (theme: UiTheme) => void): () => void
-  /** open the GenTeam community page in the default browser */
-  openGenTeam(): Promise<void>
+  /** open the GitHub Discussions community page in the default browser */
+  openCommunity(): Promise<void>
   /** Legacy compatibility facade; no vendor credit page is opened. */
   openCreditUsage(): Promise<void>
   /** open the public GitHub repository in the default browser */
@@ -277,7 +277,7 @@ export const HOME_CHANNELS = {
   setTheme: 'home:set-theme',
   getDefaultSaveDir: 'home:get-default-save-dir',
   pickDefaultSaveDir: 'home:pick-default-save-dir',
-  openGenTeam: 'home:open-genteam',
+  openCommunity: 'home:open-community',
   openGitHubRepo: 'home:open-github-repo',
   githubStars: 'home:github-stars',
   starPromptShouldShow: 'home:star-prompt-should-show',

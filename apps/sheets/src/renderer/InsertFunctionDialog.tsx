@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { Dropdown } from '@genoffice/ui'
+import { Dropdown } from '@duooffice/ui'
 
 import { useI18n, type StringKey } from './i18n/locale'
 

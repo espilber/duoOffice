@@ -32,6 +32,19 @@
 - Generado y auditado un ZIP macOS arm64: sin recursos privados y con `app-update.yml` fijado a GitHub. El empaquetado nativo de Windows/Linux queda para CI en esas plataformas.
 - La fase de independencia y privacidad queda completada. El siguiente bloque es el rebranding técnico y la experiencia de arranque.
 
+## Rebranding y splash — 2026-09-01
+
+- Recibidos y fijados como identidad oficial, sin reinterpretación, `icono_douoffice.png` para el icono de aplicación y `duooffice-logo.svg` para la firma visible de la interfaz.
+- Aplicado el rebranding técnico completo: namespace `@duooffice/*`, variables `DUOOFFICE_*`, títulos, enlaces, rutas, nombres de paquete, asociaciones y metadatos de distribución.
+- Fijados `productName=duoOffice`, `appId=com.duooffice.app`, ejecutable `duoOffice` en macOS y artefactos `duoOffice-0.8.0-arm64`.
+- Generadas desde el icono aprobado las variantes ICNS, ICO y Linux; los metadatos internos de las seis fuentes modificadas también usan identidad duoOffice.
+- Retirados los restos no ejecutables de cuenta, login, proyectos web, créditos y conversión cloud que aún permanecían en traducciones y componentes heredados.
+- Implementada una splash local y segura (`contextIsolation`, sandbox, sin Node, preload ni red), con mínimo de 650 ms, fallback de 12 s y handoff a la ventana principal lista.
+- Añadidas pruebas unitarias y E2E del splash y la auditoría `npm run check:brand-boundaries`; los recursos visuales aprobados quedan protegidos mediante SHA-256.
+- Validación superada: formato, typecheck global, auditorías de marca/privacidad/proveedor privado, pruebas unitarias de todos los workspaces, build completo y 39 E2E ejecutables; 5 regresiones visuales permanecen omitidas por configuración.
+- Generados `duoOffice-0.8.0-arm64.dmg` y `duoOffice-0.8.0-arm64-mac.zip` sin firma/notarización. El paquete declara `duoOffice`, `com.duooffice.app`, ejecutable propio, icono aprobado y fuentes renombradas.
+- Windows y Linux quedan pendientes de validación nativa en CI. El siguiente bloque será el refinamiento de interfaz, siempre consultando antes las decisiones de diseño.
+
 ## Referencias
 
-- [REF: SPEC.md#requisitos] Desacoplamiento de GenSpark.
+- [REF: SPEC.md#requisitos] Rebranding técnico y splash screen.

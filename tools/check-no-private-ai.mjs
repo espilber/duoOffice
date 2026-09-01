@@ -3,7 +3,20 @@ import { extname, join, relative } from 'node:path'
 
 const root = process.cwd()
 const forbidden = /genspark|@genspark|genspark\.ai|\bgsk\b/i
-const sourceExtensions = new Set(['.cjs', '.css', '.html', '.js', '.jsx', '.mjs', '.ts', '.tsx'])
+const sourceExtensions = new Set([
+  '.cjs',
+  '.css',
+  '.html',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.py',
+  '.rs',
+  '.ts',
+  '.tsx',
+  '.yaml',
+  '.yml',
+])
 const files = [
   'package.json',
   'package-lock.json',
@@ -15,7 +28,19 @@ async function collectSources(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name)
     if (entry.isDirectory()) {
-      if (entry.name === 'node_modules' || entry.name === 'tests') continue
+      if (
+        [
+          'node_modules',
+          'tests',
+          '__tests__',
+          'fixtures',
+          'out',
+          'dist',
+          'release',
+          'target',
+        ].includes(entry.name)
+      )
+        continue
       await collectSources(path)
     } else if (sourceExtensions.has(extname(entry.name))) {
       files.push(relative(root, path))
@@ -29,7 +54,7 @@ for (const workspace of ['apps', 'packages']) {
     const workspaceRoot = join(root, workspace, entry.name)
     files.push(relative(root, join(workspaceRoot, 'package.json')))
     try {
-      await collectSources(join(workspaceRoot, 'src'))
+      await collectSources(workspaceRoot)
     } catch (error) {
       if (error?.code !== 'ENOENT') throw error
     }

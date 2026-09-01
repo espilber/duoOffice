@@ -1,4 +1,4 @@
-import type { AgentMessage, AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
+import type { AgentMessage, AgentToolCall, AgentToolDef } from '@duooffice/agent-core'
 
 export type AiProviderId =
   | 'anthropic'

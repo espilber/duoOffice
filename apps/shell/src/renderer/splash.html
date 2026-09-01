@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>duoOffice</title>
+    <link rel="stylesheet" href="./src/splash.css" />
+  </head>
+  <body>
+    <main class="splash" aria-labelledby="splash-name">
+      <img class="splash-icon" src="./src/assets/app-icon.png" alt="" />
+      <img
+        id="splash-name"
+        class="splash-wordmark"
+        src="./src/assets/duooffice-logo.svg"
+        alt="duoOffice"
+      />
+      <div class="splash-meta">
+        <span id="splash-version" class="splash-version"></span>
+        <span class="splash-status" role="status" aria-live="polite">Starting…</span>
+      </div>
+    </main>
+    <script type="module" src="./src/splash.ts"></script>
+  </body>
+</html>

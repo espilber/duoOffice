@@ -1,14 +1,14 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { htmlLang } from '@genoffice/i18n'
+import { htmlLang } from '@duooffice/i18n'
 import { AppFrame } from './AppFrame'
 import { LocaleProvider } from './locale'
-import '@genoffice/ui/tokens.css'
-import '@genoffice/ui/screentip.css'
-import '@genoffice/ui/dropdown.css'
+import '@duooffice/ui/tokens.css'
+import '@duooffice/ui/screentip.css'
+import '@duooffice/ui/dropdown.css'
 import './home.css'
 import './tabbar.css'
-import { installScreenTips } from '@genoffice/ui'
+import { installScreenTips } from '@duooffice/ui'
 
 installScreenTips()
 

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { AgentToolCall, AgentToolDef } from '@genoffice/agent-core'
+import type { AgentToolCall, AgentToolDef } from '@duooffice/agent-core'
 import {
   copyTargetBounds,
   workbookOperationSchema,

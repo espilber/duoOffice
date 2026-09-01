@@ -9,8 +9,8 @@ import {
   type AgentImage,
   type AgentSkill,
   type AgentTransport,
-} from '@genoffice/agent-core'
-import { getProviderAdapter, modelLacksVision, type AiSettings } from '@genoffice/ai-provider'
+} from '@duooffice/agent-core'
+import { getProviderAdapter, modelLacksVision, type AiSettings } from '@duooffice/ai-provider'
 import { auditSlideLayout } from './layout-audit'
 import { createSlidesSkill, formatSlideDump, type DeckAccess } from './slides-skill'
 

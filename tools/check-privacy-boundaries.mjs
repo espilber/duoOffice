@@ -14,14 +14,14 @@ const files = [
 
 const forbidden = [
   /google-analytics\.com/i,
-  /genofficeAnalytics/i,
-  /GENOFFICE_GA4/i,
+  /duoofficeAnalytics/i,
+  /DUOOFFICE_GA4/i,
   /Measurement Protocol/i,
   /getAnalyticsEnabled/,
   /setAnalyticsEnabled/,
   /home:get-analytics-enabled/,
   /home:set-analytics-enabled/,
-  /GENOFFICE_UPDATE_URL/,
+  /DUOOFFICE_UPDATE_URL/,
   /provider:\s*['"]generic['"]/,
 ]
 

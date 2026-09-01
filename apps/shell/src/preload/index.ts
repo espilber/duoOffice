@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { IpcRendererEvent } from 'electron'
-import { AI_PROVIDERS, getProviderAdapter } from '@genoffice/ai-provider'
-import type { AiSettings } from '@genoffice/ai-provider'
-import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import { AI_PROVIDERS, getProviderAdapter } from '@duooffice/ai-provider'
+import type { AiSettings } from '@duooffice/ai-provider'
+import { installDropOpenBridge } from '@duooffice/electron-utils/drop-open'
 import type {
   AccountLoginEvent,
   AccountStatus,
@@ -181,8 +181,8 @@ const homeApi: HomeApi = {
     ipcRenderer.on('app:theme-changed', listener)
     return () => ipcRenderer.removeListener('app:theme-changed', listener)
   },
-  async openGenTeam() {
-    await ipcRenderer.invoke(HOME_CHANNELS.openGenTeam)
+  async openCommunity() {
+    await ipcRenderer.invoke(HOME_CHANNELS.openCommunity)
   },
   async openCreditUsage() {},
   async openGitHubRepo() {

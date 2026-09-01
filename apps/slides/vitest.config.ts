@@ -9,29 +9,29 @@ export default defineConfig({
   resolve: {
     alias: {
       // Subpath before the bare name: string aliases are prefix replacements
-      '@genoffice/pptx-engine/table-grid': resolve(
+      '@duooffice/pptx-engine/table-grid': resolve(
         here,
         '../../packages/pptx-engine/src/table-grid.ts',
       ),
-      '@genoffice/pptx-engine/identity': resolve(
+      '@duooffice/pptx-engine/identity': resolve(
         here,
         '../../packages/pptx-engine/src/identity.ts',
       ),
-      '@genoffice/pptx-engine/background-promote': resolve(
+      '@duooffice/pptx-engine/background-promote': resolve(
         here,
         '../../packages/pptx-engine/src/background-promote.ts',
       ),
-      '@genoffice/pptx-engine/custgeom': resolve(
+      '@duooffice/pptx-engine/custgeom': resolve(
         here,
         '../../packages/pptx-engine/src/custgeom.ts',
       ),
-      '@genoffice/pptx-engine': resolve(here, '../../packages/pptx-engine/src/index.ts'),
-      '@genoffice/pptx-render/preset-geometry': resolve(
+      '@duooffice/pptx-engine': resolve(here, '../../packages/pptx-engine/src/index.ts'),
+      '@duooffice/pptx-render/preset-geometry': resolve(
         here,
         '../../packages/pptx-render/src/preset-geometry.ts',
       ),
-      '@genoffice/pptx-render': resolve(here, '../../packages/pptx-render/src/index.ts'),
-      '@genoffice/docx-engine/metafile': resolve(
+      '@duooffice/pptx-render': resolve(here, '../../packages/pptx-render/src/index.ts'),
+      '@duooffice/docx-engine/metafile': resolve(
         here,
         '../../packages/docx-engine/src/metafile.ts',
       ),

@@ -9,8 +9,8 @@ import type {
   MenuCommand,
   UiTheme,
 } from '../shared/ipc'
-import type { ProjectApi } from '@genoffice/project-store'
-import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import type { ProjectApi } from '@duooffice/project-store'
+import { installDropOpenBridge } from '@duooffice/electron-utils/drop-open'
 
 const api: DesktopApi = {
   getLanguage: () => ipcRenderer.invoke('app:get-language'),

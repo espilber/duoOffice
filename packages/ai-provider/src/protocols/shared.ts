@@ -1,4 +1,4 @@
-import type { AgentToolCall } from '@genoffice/agent-core'
+import type { AgentToolCall } from '@duooffice/agent-core'
 
 // ---- streaming (SSE line splitting shared by all providers) ----
 

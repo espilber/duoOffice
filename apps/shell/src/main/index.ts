@@ -1,13 +1,5 @@
 import { execSync, spawn } from 'node:child_process'
-import {
-  copyFileSync,
-  cpSync,
-  existsSync,
-  readFileSync,
-  readdirSync,
-  renameSync,
-  writeFileSync,
-} from 'node:fs'
+import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
 import {
   BrowserWindow,
@@ -34,7 +26,7 @@ import menuMdIcon1x from './assets/menu-md.png?asset'
 import menuMdIcon2x from './assets/menu-md@2x.png?asset'
 import menuHomeIcon1x from './assets/menu-home.png?asset'
 import menuHomeIcon2x from './assets/menu-home@2x.png?asset'
-import { createI18n, isLang, normalizeLang, setUiLang, type Lang } from '@genoffice/i18n'
+import { createI18n, isLang, normalizeLang, setUiLang, type Lang } from '@duooffice/i18n'
 import {
   DEFAULT_SAVE_DIR_KEY,
   DROP_OPEN_CHANNEL,
@@ -48,7 +40,7 @@ import {
   showOpenDialogWithMemory,
   showSaveDialogWithMemory,
   windowMenuTemplate,
-} from '@genoffice/electron-utils'
+} from '@duooffice/electron-utils'
 import { readAppSettings, writeAppSetting } from './app-settings'
 import {
   LAST_RUN_VERSION_KEY,
@@ -63,7 +55,7 @@ import {
   withShown,
 } from './star-prompt'
 import { handleDroppedFiles } from './dropped-files'
-import { ProjectStore } from '@genoffice/project-store'
+import { ProjectStore } from '@duooffice/project-store'
 
 import {
   buildDocsMenu,
@@ -162,11 +154,14 @@ import { TABS_CHANNELS } from '../shared/tabs-api'
 import { showErrorDialog } from './error-dialog'
 import { normalizeRecentQuery, pageRecentPaths, statExistingPaths } from './recent-files'
 import { TabManager } from './tab-manager'
+import { closeSplashWindow, createSplashWindow, handoffSplashTo } from './splash-window'
 import { applyUpdateChannel, initAutoUpdater } from './updater'
 import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
 
+const COMMUNITY_URL = `${GITHUB_REPO_URL}/discussions`
+
 /**
- * GenOffice unified shell: ONE Electron app, ONE BrowserWindow, hosting the
+ * duoOffice unified shell: ONE Electron app, ONE BrowserWindow, hosting the
  * docs and sheets modules as WebContentsView tabs behind a WPS-style tab
  * strip. The shell owns the lifecycle — single-instance lock, file-
  * association routing by extension, and per-active-tab menu switching.
@@ -176,22 +171,14 @@ import { isUpdateChannel, type UpdateChannel } from '../shared/update-api'
 
 // ANY unpacked run (`npm run shell`, `npm run dev`, `npx electron .`) must not
 // share the installed app's userData or single-instance lock — otherwise a dev
-// run silently quits and forwards its argv to the running installed GenOffice.
-// GENOFFICE_USER_DATA: test drivers point this at a scratch dir so an
+// run silently quits and forwards its argv to the running installed duoOffice.
+// DUOOFFICE_USER_DATA: test drivers point this at a scratch dir so an
 // automated instance can run alongside the dev instance (separate lock).
 if (!app.isPackaged)
   app.setPath(
     'userData',
-    process.env.GENOFFICE_USER_DATA ?? join(app.getPath('appData'), 'GenOffice Dev'),
+    process.env.DUOOFFICE_USER_DATA ?? join(app.getPath('appData'), 'duoOffice Dev'),
   )
-
-// The product rename from "AI Office" to GenOffice changed the userData path; migrate old user data once
-if (app.isPackaged) {
-  const oldDir = join(app.getPath('appData'), 'AI Office')
-  const newDir = app.getPath('userData')
-  const newEmpty = !existsSync(newDir) || readdirSync(newDir).length === 0
-  if (newEmpty && existsSync(oldDir)) cpSync(oldDir, newDir, { recursive: true })
-}
 
 // module build outputs: packaged builds carry them as extraResources
 // (resources/modules/*, resources/native/*); dev/unpacked resolves them
@@ -254,7 +241,7 @@ configureMarkdownRuntime({
 
 // ---- UI language ----
 // Persisted in userData/app-settings.json so the editor modules can read the
-// same file when they pick up i18n later. GENOFFICE_LANG overrides for tests.
+// same file when they pick up i18n later. DUOOFFICE_LANG overrides for tests.
 
 const APP_SETTINGS_PATH = () => join(app.getPath('userData'), 'app-settings.json')
 
@@ -262,8 +249,8 @@ let uiLang: Lang | null = null
 
 function currentLang(): Lang {
   if (uiLang) return uiLang
-  if (process.env.GENOFFICE_LANG) {
-    uiLang = normalizeLang(process.env.GENOFFICE_LANG)
+  if (process.env.DUOOFFICE_LANG) {
+    uiLang = normalizeLang(process.env.DUOOFFICE_LANG)
     setUiLang(uiLang)
     return uiLang
   }
@@ -392,19 +379,10 @@ const tMain = createI18n({
     menuHelp: '帮助',
     thirdPartyNotices: '第三方软件声明',
     menuExportDocx: '导出为 Word…',
-    pdfDocxLoginMsg: '导出为 Word 需要登录 duoOffice 账号。',
-    pdfDocxLoginDetail: '点击“登录”将打开浏览器完成授权，完成后请重新点击导出。',
-    pdfDocxBtnLogin: '登录',
-    pdfDocxConfirmMsg: '将此 PDF 上传到 duoOffice 云端转换为 Word？',
-    pdfDocxConfirmDetail: '本次转换将消耗 5 credits，文件将上传至云端处理。',
-    pdfDocxConfirmBalance: '当前余额 {balance} credits。',
-    pdfDocxBtnConvert: '继续',
     btnCancel: '取消',
     pdfDocxFailedMsg: '导出为 Word 失败',
-    pdfDocxNoCliMsg: '无法登录 duoOffice：缺少必需组件（provider），请重新安装应用。',
     pdfDocxBusyMsg: '正在转换中，请等待当前导出完成。',
     menuExportDocxLocal: '导出为 Word（本地转换）…',
-    menuExportDocxCloud: '导出为 Word（云端转换）…',
     menuExportPptx: '导出为 PPT…',
     pdfPptxFailedMsg: '导出为 PPT 失败',
     pdfPptxBusyMsg: '正在转换中，请等待当前导出完成。',
@@ -416,16 +394,14 @@ const tMain = createI18n({
     pdfXlsxLocalSkippedMsg: '部分页面未转换为单元格',
     pdfXlsxLocalSkippedDetail: '第 {pages} 页无法转换为单元格，对应工作表中已写入提示行。',
     pdfDocxLocalScannedMsg: '检测到扫描件',
-    pdfDocxLocalScannedDetail:
-      '本地转换已按图片保真导出各页。如需可编辑的文本，请使用云端转换（支持 OCR）。',
+    pdfDocxLocalScannedDetail: '本地转换已按图片保真导出各页。',
     pdfDocxLocalDegradedMsg: '部分页面已按图片导出',
     pdfDocxLocalDegradedDetail: '第 {pages} 页版面无法可靠重建，已按整页图片保真导出。',
     pdfDocxLocalOcrMsg: '扫描页已转换为可编辑文本',
     pdfDocxLocalOcrDetail:
       '第 {pages} 页为扫描件，已通过本地 OCR 识别为可编辑文字，建议校对识别结果。',
     pdfDocxLocalEncryptedDetail: '此 PDF 已加密，未提供正确的密码，无法转换。',
-    pdfDocxLocalUnsupportedEncDetail:
-      '该文件使用证书加密或不支持的加密方式，无法在本地转换，可尝试云端转换。',
+    pdfDocxLocalUnsupportedEncDetail: '该文件使用证书加密或不支持的加密方式，无法在本地转换。',
     pdfPwdTitle: '输入密码',
     pdfPwdPrompt: '此 PDF 已加密，请输入打开密码：',
     pdfPwdRetryPrompt: '密码不正确，请重试。',
@@ -481,22 +457,10 @@ const tMain = createI18n({
     menuHelp: 'Help',
     thirdPartyNotices: 'Third-Party Notices',
     menuExportDocx: 'Export as Word…',
-    pdfDocxLoginMsg: 'Exporting as Word requires signing in to duoOffice.',
-    pdfDocxLoginDetail:
-      'Clicking “Sign In” opens your browser to authorize; once done, click Export again.',
-    pdfDocxBtnLogin: 'Sign In',
-    pdfDocxConfirmMsg: 'Upload this PDF to duoOffice cloud and convert it to Word?',
-    pdfDocxConfirmDetail:
-      'The conversion costs 5 credits. The file will be uploaded for cloud processing.',
-    pdfDocxConfirmBalance: 'Current balance: {balance} credits.',
-    pdfDocxBtnConvert: 'Continue',
     btnCancel: 'Cancel',
     pdfDocxFailedMsg: 'Export as Word failed',
-    pdfDocxNoCliMsg:
-      'Cannot sign in to duoOffice: a required component (provider) is missing. Please reinstall the app.',
     pdfDocxBusyMsg: 'A Word export is already in progress. Please wait for it to finish.',
     menuExportDocxLocal: 'Export as Word (Local)…',
-    menuExportDocxCloud: 'Export as Word (Cloud)…',
     menuExportPptx: 'Export as PowerPoint…',
     pdfPptxFailedMsg: 'Export as PowerPoint failed',
     pdfPptxBusyMsg: 'An export is already in progress. Please wait for it to finish.',
@@ -512,7 +476,7 @@ const tMain = createI18n({
       'Pages {pages} could not be converted to cells; their worksheets carry a notice row instead.',
     pdfDocxLocalScannedMsg: 'Scanned document detected',
     pdfDocxLocalScannedDetail:
-      'The local conversion exported the pages as images to preserve their appearance. For editable text, use the cloud conversion (with OCR).',
+      'The local conversion exported the pages as images to preserve their appearance.',
     pdfDocxLocalDegradedMsg: 'Some pages were exported as images',
     pdfDocxLocalDegradedDetail:
       'Page(s) {pages} could not be reliably reconstructed and were exported as full-page images.',
@@ -522,7 +486,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'This PDF is encrypted and could not be opened without the correct password.',
     pdfDocxLocalUnsupportedEncDetail:
-      'This PDF uses certificate-based or otherwise unsupported encryption and cannot be converted locally. Try the cloud conversion instead.',
+      'This PDF uses certificate-based or otherwise unsupported encryption and cannot be converted locally.',
     pdfPwdTitle: 'Enter Password',
     pdfPwdPrompt: 'This PDF is encrypted. Enter the password to open it:',
     pdfPwdRetryPrompt: 'Incorrect password. Please try again.',
@@ -579,22 +543,10 @@ const tMain = createI18n({
     menuHelp: 'ヘルプ',
     thirdPartyNotices: 'サードパーティソフトウェアに関する通知',
     menuExportDocx: 'Word として書き出す…',
-    pdfDocxLoginMsg: 'Word への書き出しには duoOffice へのログインが必要です。',
-    pdfDocxLoginDetail:
-      '「ログイン」をクリックするとブラウザで認証します。完了後、もう一度書き出しを実行してください。',
-    pdfDocxBtnLogin: 'ログイン',
-    pdfDocxConfirmMsg: 'この PDF を duoOffice クラウドにアップロードして Word に変換しますか？',
-    pdfDocxConfirmDetail:
-      '変換には 5 クレジットを消費します。ファイルはクラウドにアップロードされ処理されます。',
-    pdfDocxConfirmBalance: '現在の残高：{balance} クレジット。',
-    pdfDocxBtnConvert: '続行',
     btnCancel: 'キャンセル',
     pdfDocxFailedMsg: 'Word への書き出しに失敗しました',
-    pdfDocxNoCliMsg:
-      'duoOffice にサインインできません：必要なコンポーネント（provider）が見つかりません。アプリを再インストールしてください。',
     pdfDocxBusyMsg: 'Word への書き出しが進行中です。完了までお待ちください。',
     menuExportDocxLocal: 'Word として書き出す（ローカル変換）…',
-    menuExportDocxCloud: 'Word として書き出す（クラウド変換）…',
     menuExportPptx: 'PowerPoint として書き出す…',
     pdfPptxFailedMsg: 'PowerPoint への書き出しに失敗しました',
     pdfPptxBusyMsg: '変換が進行中です。現在の書き出しが完了するまでお待ちください。',
@@ -610,7 +562,7 @@ const tMain = createI18n({
       'ページ {pages} はセルに変換できなかったため、対応するワークシートに通知行を書き込みました。',
     pdfDocxLocalScannedMsg: 'スキャン文書を検出しました',
     pdfDocxLocalScannedDetail:
-      'ローカル変換では、見た目を保つため各ページを画像として書き出しました。編集可能なテキストが必要な場合は、クラウド変換（OCR 対応）をご利用ください。',
+      'ローカル変換では、見た目を保つため各ページを画像として書き出しました。',
     pdfDocxLocalDegradedMsg: '一部のページを画像として書き出しました',
     pdfDocxLocalDegradedDetail:
       'ページ {pages} はレイアウトを正確に再構築できなかったため、ページ全体を画像として書き出しました。',
@@ -620,7 +572,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'このPDFは暗号化されており、正しいパスワードがないため変換できませんでした。',
     pdfDocxLocalUnsupportedEncDetail:
-      'このPDFは証明書ベースまたは未対応の暗号化方式を使用しているため、ローカルでは変換できません。クラウド変換をお試しください。',
+      'このPDFは証明書ベースまたは未対応の暗号化方式を使用しているため、ローカルでは変換できません。',
     pdfPwdTitle: 'パスワードを入力',
     pdfPwdPrompt: 'このPDFは暗号化されています。開くためのパスワードを入力してください：',
     pdfPwdRetryPrompt: 'パスワードが正しくありません。もう一度お試しください。',
@@ -677,22 +629,10 @@ const tMain = createI18n({
     menuHelp: '도움말',
     thirdPartyNotices: '타사 소프트웨어 고지',
     menuExportDocx: 'Word로 내보내기…',
-    pdfDocxLoginMsg: 'Word로 내보내려면 duoOffice 로그인이 필요합니다.',
-    pdfDocxLoginDetail:
-      '“로그인”을 클릭하면 브라우저에서 인증합니다. 완료 후 내보내기를 다시 클릭하세요.',
-    pdfDocxBtnLogin: '로그인',
-    pdfDocxConfirmMsg: '이 PDF를 duoOffice 클라우드에 업로드하여 Word로 변환할까요?',
-    pdfDocxConfirmDetail:
-      '변환에는 5 크레딧이 소모됩니다. 파일은 클라우드로 업로드되어 처리됩니다.',
-    pdfDocxConfirmBalance: '현재 잔액: {balance} 크레딧.',
-    pdfDocxBtnConvert: '계속',
     btnCancel: '취소',
     pdfDocxFailedMsg: 'Word로 내보내기 실패',
-    pdfDocxNoCliMsg:
-      'duoOffice에 로그인할 수 없습니다. 필수 구성 요소(provider)가 없습니다. 앱을 다시 설치해 주세요.',
     pdfDocxBusyMsg: 'Word 내보내기가 이미 진행 중입니다. 완료될 때까지 기다려 주세요.',
     menuExportDocxLocal: 'Word로 내보내기(로컬 변환)…',
-    menuExportDocxCloud: 'Word로 내보내기(클라우드 변환)…',
     menuExportPptx: 'PowerPoint로 내보내기…',
     pdfPptxFailedMsg: 'PowerPoint 내보내기 실패',
     pdfPptxBusyMsg: '변환이 진행 중입니다. 현재 내보내기가 완료될 때까지 기다려 주세요.',
@@ -708,7 +648,7 @@ const tMain = createI18n({
       '{pages} 페이지는 셀로 변환할 수 없어 해당 워크시트에 알림 행을 기록했습니다.',
     pdfDocxLocalScannedMsg: '스캔 문서가 감지되었습니다',
     pdfDocxLocalScannedDetail:
-      '로컬 변환은 모양을 유지하기 위해 각 페이지를 이미지로 내보냈습니다. 편집 가능한 텍스트가 필요하면 클라우드 변환(OCR 지원)을 사용하세요.',
+      '로컬 변환은 모양을 유지하기 위해 각 페이지를 이미지로 내보냈습니다.',
     pdfDocxLocalDegradedMsg: '일부 페이지가 이미지로 내보내졌습니다',
     pdfDocxLocalDegradedDetail:
       '{pages}쪽은 레이아웃을 안정적으로 재구성할 수 없어 전체 페이지 이미지로 내보냈습니다.',
@@ -718,7 +658,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       '이 PDF는 암호화되어 있으며 올바른 비밀번호가 없어 변환할 수 없습니다.',
     pdfDocxLocalUnsupportedEncDetail:
-      '이 PDF는 인증서 기반이거나 지원되지 않는 암호화 방식을 사용하므로 로컬에서 변환할 수 없습니다. 클라우드 변환을 사용해 보세요.',
+      '이 PDF는 인증서 기반이거나 지원되지 않는 암호화 방식을 사용하므로 로컬에서 변환할 수 없습니다.',
     pdfPwdTitle: '비밀번호 입력',
     pdfPwdPrompt: '이 PDF는 암호화되어 있습니다. 열기 위한 비밀번호를 입력하세요:',
     pdfPwdRetryPrompt: '비밀번호가 올바르지 않습니다. 다시 시도하세요.',
@@ -774,22 +714,10 @@ const tMain = createI18n({
     menuHelp: 'Aide',
     thirdPartyNotices: 'Mentions relatives aux logiciels tiers',
     menuExportDocx: 'Exporter en Word…',
-    pdfDocxLoginMsg: "L'export en Word nécessite une connexion à duoOffice.",
-    pdfDocxLoginDetail:
-      "Cliquez sur « Se connecter » pour autoriser dans le navigateur, puis relancez l'export.",
-    pdfDocxBtnLogin: 'Se connecter',
-    pdfDocxConfirmMsg: 'Téléverser ce PDF vers le cloud duoOffice pour le convertir en Word ?',
-    pdfDocxConfirmDetail:
-      'La conversion coûte 5 crédits. Le fichier sera téléversé pour traitement dans le cloud.',
-    pdfDocxConfirmBalance: 'Solde actuel : {balance} crédits.',
-    pdfDocxBtnConvert: 'Continuer',
     btnCancel: 'Annuler',
     pdfDocxFailedMsg: "Échec de l'export en Word",
-    pdfDocxNoCliMsg:
-      "Connexion à duoOffice impossible : un composant requis (provider) est manquant. Veuillez réinstaller l'application.",
     pdfDocxBusyMsg: "Un export en Word est déjà en cours. Veuillez attendre qu'il se termine.",
     menuExportDocxLocal: 'Exporter en Word (local)…',
-    menuExportDocxCloud: 'Exporter en Word (cloud)…',
     menuExportPptx: 'Exporter en PowerPoint…',
     pdfPptxFailedMsg: "Échec de l'exportation en PowerPoint",
     pdfPptxBusyMsg: "Une exportation est déjà en cours. Veuillez attendre qu'elle se termine.",
@@ -805,7 +733,7 @@ const tMain = createI18n({
       "Les pages {pages} n'ont pas pu être converties en cellules ; leurs feuilles contiennent une ligne d'avertissement.",
     pdfDocxLocalScannedMsg: 'Document numérisé détecté',
     pdfDocxLocalScannedDetail:
-      "La conversion locale a exporté les pages sous forme d'images pour préserver leur apparence. Pour un texte modifiable, utilisez la conversion cloud (avec OCR).",
+      "La conversion locale a exporté les pages sous forme d'images pour préserver leur apparence.",
     pdfDocxLocalDegradedMsg: 'Certaines pages ont été exportées en images',
     pdfDocxLocalDegradedDetail:
       "Les pages {pages} n'ont pas pu être reconstruites de manière fiable et ont été exportées en images pleine page.",
@@ -815,7 +743,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       "Ce PDF est chiffré et n'a pas pu être ouvert sans le mot de passe correct.",
     pdfDocxLocalUnsupportedEncDetail:
-      'Ce PDF utilise un chiffrement par certificat ou un chiffrement non pris en charge et ne peut pas être converti localement. Essayez la conversion cloud.',
+      'Ce PDF utilise un chiffrement par certificat ou un chiffrement non pris en charge et ne peut pas être converti localement.',
     pdfPwdTitle: 'Saisir le mot de passe',
     pdfPwdPrompt: "Ce PDF est chiffré. Saisissez le mot de passe pour l'ouvrir :",
     pdfPwdRetryPrompt: 'Mot de passe incorrect. Veuillez réessayer.',
@@ -873,22 +801,10 @@ const tMain = createI18n({
     menuHelp: 'Hilfe',
     thirdPartyNotices: 'Hinweise zu Drittanbietersoftware',
     menuExportDocx: 'Als Word exportieren…',
-    pdfDocxLoginMsg: 'Für den Word-Export ist eine Anmeldung bei duoOffice erforderlich.',
-    pdfDocxLoginDetail:
-      'Klicken Sie auf „Anmelden“, um die Autorisierung im Browser abzuschließen, und starten Sie den Export danach erneut.',
-    pdfDocxBtnLogin: 'Anmelden',
-    pdfDocxConfirmMsg: 'Dieses PDF in die duoOffice-Cloud hochladen und in Word konvertieren?',
-    pdfDocxConfirmDetail:
-      'Die Konvertierung kostet 5 Credits. Die Datei wird zur Verarbeitung in die Cloud hochgeladen.',
-    pdfDocxConfirmBalance: 'Aktuelles Guthaben: {balance} Credits.',
-    pdfDocxBtnConvert: 'Fortfahren',
     btnCancel: 'Abbrechen',
     pdfDocxFailedMsg: 'Word-Export fehlgeschlagen',
-    pdfDocxNoCliMsg:
-      'Anmeldung bei duoOffice nicht möglich: Eine erforderliche Komponente (provider) fehlt. Bitte installieren Sie die App neu.',
     pdfDocxBusyMsg: 'Ein Word-Export läuft bereits. Bitte warten Sie, bis er abgeschlossen ist.',
     menuExportDocxLocal: 'Als Word exportieren (lokal)…',
-    menuExportDocxCloud: 'Als Word exportieren (Cloud)…',
     menuExportPptx: 'Als PowerPoint exportieren…',
     pdfPptxFailedMsg: 'Export als PowerPoint fehlgeschlagen',
     pdfPptxBusyMsg: 'Ein Export läuft bereits. Bitte warten Sie, bis er abgeschlossen ist.',
@@ -904,7 +820,7 @@ const tMain = createI18n({
       'Die Seiten {pages} konnten nicht in Zellen umgewandelt werden; ihre Arbeitsblätter enthalten stattdessen eine Hinweiszeile.',
     pdfDocxLocalScannedMsg: 'Gescanntes Dokument erkannt',
     pdfDocxLocalScannedDetail:
-      'Die lokale Konvertierung hat die Seiten als Bilder exportiert, um ihr Aussehen zu erhalten. Für bearbeitbaren Text nutzen Sie die Cloud-Konvertierung (mit OCR).',
+      'Die lokale Konvertierung hat die Seiten als Bilder exportiert, um ihr Aussehen zu erhalten.',
     pdfDocxLocalDegradedMsg: 'Einige Seiten wurden als Bilder exportiert',
     pdfDocxLocalDegradedDetail:
       'Seite(n) {pages} konnten nicht zuverlässig rekonstruiert werden und wurden als ganzseitige Bilder exportiert.',
@@ -914,7 +830,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Diese PDF ist verschlüsselt und konnte ohne das richtige Passwort nicht geöffnet werden.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Diese PDF verwendet eine zertifikatsbasierte oder nicht unterstützte Verschlüsselung und kann nicht lokal konvertiert werden. Versuchen Sie die Cloud-Konvertierung.',
+      'Diese PDF verwendet eine zertifikatsbasierte oder nicht unterstützte Verschlüsselung und kann nicht lokal konvertiert werden.',
     pdfPwdTitle: 'Passwort eingeben',
     pdfPwdPrompt: 'Diese PDF ist verschlüsselt. Geben Sie das Passwort zum Öffnen ein:',
     pdfPwdRetryPrompt: 'Falsches Passwort. Bitte versuchen Sie es erneut.',
@@ -972,22 +888,10 @@ const tMain = createI18n({
     menuHelp: 'Ayuda',
     thirdPartyNotices: 'Avisos de software de terceros',
     menuExportDocx: 'Exportar como Word…',
-    pdfDocxLoginMsg: 'Para exportar como Word es necesario iniciar sesión en duoOffice.',
-    pdfDocxLoginDetail:
-      'Al hacer clic en «Iniciar sesión» se abrirá el navegador para autorizar; después, vuelve a hacer clic en Exportar.',
-    pdfDocxBtnLogin: 'Iniciar sesión',
-    pdfDocxConfirmMsg: '¿Subir este PDF a la nube de duoOffice para convertirlo a Word?',
-    pdfDocxConfirmDetail:
-      'La conversión cuesta 5 créditos. El archivo se subirá para procesarse en la nube.',
-    pdfDocxConfirmBalance: 'Saldo actual: {balance} créditos.',
-    pdfDocxBtnConvert: 'Continuar',
     btnCancel: 'Cancelar',
     pdfDocxFailedMsg: 'Error al exportar como Word',
-    pdfDocxNoCliMsg:
-      'No se puede iniciar sesión en duoOffice: falta un componente necesario (provider). Reinstale la aplicación.',
     pdfDocxBusyMsg: 'Ya hay una exportación a Word en curso. Espera a que termine.',
     menuExportDocxLocal: 'Exportar como Word (local)…',
-    menuExportDocxCloud: 'Exportar como Word (nube)…',
     menuExportPptx: 'Exportar como PowerPoint…',
     pdfPptxFailedMsg: 'Error al exportar como PowerPoint',
     pdfPptxBusyMsg: 'Ya hay una exportación en curso. Espere a que termine.',
@@ -1003,7 +907,7 @@ const tMain = createI18n({
       'Las páginas {pages} no se pudieron convertir en celdas; sus hojas incluyen una fila de aviso.',
     pdfDocxLocalScannedMsg: 'Documento escaneado detectado',
     pdfDocxLocalScannedDetail:
-      'La conversión local exportó las páginas como imágenes para conservar su aspecto. Para texto editable, usa la conversión en la nube (con OCR).',
+      'La conversión local exportó las páginas como imágenes para conservar su aspecto.',
     pdfDocxLocalDegradedMsg: 'Algunas páginas se exportaron como imágenes',
     pdfDocxLocalDegradedDetail:
       'Las páginas {pages} no se pudieron reconstruir de forma fiable y se exportaron como imágenes de página completa.',
@@ -1013,7 +917,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Este PDF está cifrado y no se pudo abrir sin la contraseña correcta.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Este PDF usa cifrado basado en certificados u otro cifrado no compatible y no se puede convertir localmente. Prueba la conversión en la nube.',
+      'Este PDF usa cifrado basado en certificados u otro cifrado no compatible y no se puede convertir localmente.',
     pdfPwdTitle: 'Introducir contraseña',
     pdfPwdPrompt: 'Este PDF está cifrado. Introduzca la contraseña para abrirlo:',
     pdfPwdRetryPrompt: 'Contraseña incorrecta. Inténtelo de nuevo.',
@@ -1071,21 +975,10 @@ const tMain = createI18n({
     menuHelp: 'วิธีใช้',
     thirdPartyNotices: 'ประกาศเกี่ยวกับซอฟต์แวร์ของบุคคลที่สาม',
     menuExportDocx: 'ส่งออกเป็น Word…',
-    pdfDocxLoginMsg: 'การส่งออกเป็น Word ต้องเข้าสู่ระบบ duoOffice',
-    pdfDocxLoginDetail:
-      'คลิก “เข้าสู่ระบบ” เพื่อเปิดเบราว์เซอร์ยืนยันตัวตน เสร็จแล้วให้คลิกส่งออกอีกครั้ง',
-    pdfDocxBtnLogin: 'เข้าสู่ระบบ',
-    pdfDocxConfirmMsg: 'อัปโหลด PDF นี้ไปยังคลาวด์ duoOffice เพื่อแปลงเป็น Word หรือไม่?',
-    pdfDocxConfirmDetail: 'การแปลงใช้ 5 เครดิต ไฟล์จะถูกอัปโหลดเพื่อประมวลผลบนคลาวด์',
-    pdfDocxConfirmBalance: 'ยอดคงเหลือปัจจุบัน: {balance} เครดิต',
-    pdfDocxBtnConvert: 'ดำเนินการต่อ',
     btnCancel: 'ยกเลิก',
     pdfDocxFailedMsg: 'ส่งออกเป็น Word ไม่สำเร็จ',
-    pdfDocxNoCliMsg:
-      'ไม่สามารถลงชื่อเข้าใช้ duoOffice ได้: ไม่พบคอมโพเนนต์ที่จำเป็น (provider) โปรดติดตั้งแอปใหม่',
     pdfDocxBusyMsg: 'กำลังส่งออกเป็น Word อยู่ โปรดรอให้เสร็จสิ้นก่อน',
     menuExportDocxLocal: 'ส่งออกเป็น Word (แปลงในเครื่อง)…',
-    menuExportDocxCloud: 'ส่งออกเป็น Word (แปลงบนคลาวด์)…',
     menuExportPptx: 'ส่งออกเป็น PowerPoint…',
     pdfPptxFailedMsg: 'การส่งออกเป็น PowerPoint ล้มเหลว',
     pdfPptxBusyMsg: 'กำลังแปลงอยู่ โปรดรอให้การส่งออกปัจจุบันเสร็จสิ้น',
@@ -1099,8 +992,7 @@ const tMain = createI18n({
     pdfXlsxLocalSkippedDetail:
       'หน้า {pages} ไม่สามารถแปลงเป็นเซลล์ได้ เวิร์กชีตของหน้าดังกล่าวมีแถวแจ้งเตือนแทน',
     pdfDocxLocalScannedMsg: 'ตรวจพบเอกสารสแกน',
-    pdfDocxLocalScannedDetail:
-      'การแปลงในเครื่องได้ส่งออกแต่ละหน้าเป็นรูปภาพเพื่อคงรูปลักษณ์เดิม หากต้องการข้อความที่แก้ไขได้ โปรดใช้การแปลงบนคลาวด์ (รองรับ OCR)',
+    pdfDocxLocalScannedDetail: 'การแปลงในเครื่องได้ส่งออกแต่ละหน้าเป็นรูปภาพเพื่อคงรูปลักษณ์เดิม。',
     pdfDocxLocalDegradedMsg: 'บางหน้าถูกส่งออกเป็นรูปภาพ',
     pdfDocxLocalDegradedDetail:
       'หน้า {pages} ไม่สามารถสร้างเลย์เอาต์ใหม่ได้อย่างน่าเชื่อถือ จึงส่งออกเป็นรูปภาพทั้งหน้า',
@@ -1109,7 +1001,7 @@ const tMain = createI18n({
       'หน้า {pages} เป็นภาพสแกน ระบบกู้คืนข้อความด้วย OCR ในเครื่องแล้ว โปรดตรวจทานผลลัพธ์',
     pdfDocxLocalEncryptedDetail: 'PDF นี้ถูกเข้ารหัสและไม่สามารถเปิดได้โดยไม่มีรหัสผ่านที่ถูกต้อง',
     pdfDocxLocalUnsupportedEncDetail:
-      'PDF นี้ใช้การเข้ารหัสแบบใบรับรองหรือการเข้ารหัสที่ไม่รองรับ จึงไม่สามารถแปลงในเครื่องได้ ลองใช้การแปลงบนคลาวด์แทน',
+      'PDF นี้ใช้การเข้ารหัสแบบใบรับรองหรือการเข้ารหัสที่ไม่รองรับ จึงไม่สามารถแปลงในเครื่องได้。',
     pdfPwdTitle: 'ป้อนรหัสผ่าน',
     pdfPwdPrompt: 'PDF นี้ถูกเข้ารหัส โปรดป้อนรหัสผ่านเพื่อเปิด:',
     pdfPwdRetryPrompt: 'รหัสผ่านไม่ถูกต้อง โปรดลองอีกครั้ง',
@@ -1165,22 +1057,10 @@ const tMain = createI18n({
     menuHelp: 'Bantuan',
     thirdPartyNotices: 'Pemberitahuan Perangkat Lunak Pihak Ketiga',
     menuExportDocx: 'Ekspor sebagai Word…',
-    pdfDocxLoginMsg: 'Ekspor sebagai Word memerlukan login ke duoOffice.',
-    pdfDocxLoginDetail:
-      'Klik “Masuk” untuk membuka browser dan memberi otorisasi; setelah selesai, klik Ekspor lagi.',
-    pdfDocxBtnLogin: 'Masuk',
-    pdfDocxConfirmMsg: 'Unggah PDF ini ke cloud duoOffice untuk dikonversi ke Word?',
-    pdfDocxConfirmDetail:
-      'Konversi ini menggunakan 5 kredit. File akan diunggah untuk diproses di cloud.',
-    pdfDocxConfirmBalance: 'Saldo saat ini: {balance} kredit.',
-    pdfDocxBtnConvert: 'Lanjutkan',
     btnCancel: 'Batal',
     pdfDocxFailedMsg: 'Gagal mengekspor sebagai Word',
-    pdfDocxNoCliMsg:
-      'Tidak dapat masuk ke duoOffice: komponen yang diperlukan (provider) tidak ditemukan. Silakan instal ulang aplikasi.',
     pdfDocxBusyMsg: 'Ekspor ke Word sedang berlangsung. Harap tunggu hingga selesai.',
     menuExportDocxLocal: 'Ekspor sebagai Word (lokal)…',
-    menuExportDocxCloud: 'Ekspor sebagai Word (cloud)…',
     menuExportPptx: 'Ekspor sebagai PowerPoint…',
     pdfPptxFailedMsg: 'Gagal mengekspor sebagai PowerPoint',
     pdfPptxBusyMsg: 'Ekspor sedang berlangsung. Harap tunggu hingga selesai.',
@@ -1196,7 +1076,7 @@ const tMain = createI18n({
       'Halaman {pages} tidak dapat diubah menjadi sel; lembar kerjanya berisi baris pemberitahuan.',
     pdfDocxLocalScannedMsg: 'Dokumen hasil pindaian terdeteksi',
     pdfDocxLocalScannedDetail:
-      'Konversi lokal mengekspor halaman sebagai gambar untuk mempertahankan tampilannya. Untuk teks yang dapat diedit, gunakan konversi cloud (dengan OCR).',
+      'Konversi lokal mengekspor halaman sebagai gambar untuk mempertahankan tampilannya.',
     pdfDocxLocalDegradedMsg: 'Beberapa halaman diekspor sebagai gambar',
     pdfDocxLocalDegradedDetail:
       'Halaman {pages} tidak dapat direkonstruksi dengan andal dan diekspor sebagai gambar satu halaman penuh.',
@@ -1206,7 +1086,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'PDF ini terenkripsi dan tidak dapat dibuka tanpa kata sandi yang benar.',
     pdfDocxLocalUnsupportedEncDetail:
-      'PDF ini menggunakan enkripsi berbasis sertifikat atau enkripsi yang tidak didukung dan tidak dapat dikonversi secara lokal. Coba konversi cloud.',
+      'PDF ini menggunakan enkripsi berbasis sertifikat atau enkripsi yang tidak didukung dan tidak dapat dikonversi secara lokal.',
     pdfPwdTitle: 'Masukkan Kata Sandi',
     pdfPwdPrompt: 'PDF ini terenkripsi. Masukkan kata sandi untuk membukanya:',
     pdfPwdRetryPrompt: 'Kata sandi salah. Silakan coba lagi.',
@@ -1264,22 +1144,10 @@ const tMain = createI18n({
     menuHelp: 'Справка',
     thirdPartyNotices: 'Уведомления о стороннем ПО',
     menuExportDocx: 'Экспортировать в Word…',
-    pdfDocxLoginMsg: 'Для экспорта в Word требуется вход в duoOffice.',
-    pdfDocxLoginDetail:
-      'Нажмите «Войти», чтобы авторизоваться в браузере, затем снова запустите экспорт.',
-    pdfDocxBtnLogin: 'Войти',
-    pdfDocxConfirmMsg: 'Загрузить этот PDF в облако duoOffice и конвертировать в Word?',
-    pdfDocxConfirmDetail:
-      'Конвертация стоит 5 кредитов. Файл будет загружен для обработки в облаке.',
-    pdfDocxConfirmBalance: 'Текущий баланс: {balance} кредитов.',
-    pdfDocxBtnConvert: 'Продолжить',
     btnCancel: 'Отмена',
     pdfDocxFailedMsg: 'Не удалось экспортировать в Word',
-    pdfDocxNoCliMsg:
-      'Не удаётся войти в duoOffice: отсутствует необходимый компонент (provider). Переустановите приложение.',
     pdfDocxBusyMsg: 'Экспорт в Word уже выполняется. Дождитесь его завершения.',
     menuExportDocxLocal: 'Экспортировать в Word (локально)…',
-    menuExportDocxCloud: 'Экспортировать в Word (облако)…',
     menuExportPptx: 'Экспортировать в PowerPoint…',
     pdfPptxFailedMsg: 'Не удалось экспортировать в PowerPoint',
     pdfPptxBusyMsg: 'Экспорт уже выполняется. Дождитесь его завершения.',
@@ -1295,7 +1163,7 @@ const tMain = createI18n({
       'Страницы {pages} не удалось преобразовать в ячейки; на их листах добавлена строка с уведомлением.',
     pdfDocxLocalScannedMsg: 'Обнаружен отсканированный документ',
     pdfDocxLocalScannedDetail:
-      'Локальное преобразование экспортировало страницы как изображения, чтобы сохранить их вид. Для редактируемого текста используйте облачное преобразование (с OCR).',
+      'Локальное преобразование экспортировало страницы как изображения, чтобы сохранить их вид.',
     pdfDocxLocalDegradedMsg: 'Некоторые страницы экспортированы как изображения',
     pdfDocxLocalDegradedDetail:
       'Страницы {pages} не удалось надёжно реконструировать; они экспортированы как полностраничные изображения.',
@@ -1305,7 +1173,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Этот PDF зашифрован, и его не удалось открыть без правильного пароля.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Этот PDF использует шифрование на основе сертификата или другое неподдерживаемое шифрование, локальное преобразование невозможно. Попробуйте облачное преобразование.',
+      'Этот PDF использует шифрование на основе сертификата или другое неподдерживаемое шифрование, локальное преобразование невозможно.',
     pdfPwdTitle: 'Введите пароль',
     pdfPwdPrompt: 'Этот PDF зашифрован. Введите пароль, чтобы открыть его:',
     pdfPwdRetryPrompt: 'Неверный пароль. Попробуйте ещё раз.',
@@ -1363,21 +1231,10 @@ const tMain = createI18n({
     menuHelp: 'تعليمات',
     thirdPartyNotices: 'إشعارات برامج الجهات الخارجية',
     menuExportDocx: 'تصدير كملف Word…',
-    pdfDocxLoginMsg: 'يتطلب التصدير كملف Word تسجيل الدخول إلى duoOffice.',
-    pdfDocxLoginDetail:
-      'انقر على «تسجيل الدخول» لفتح المتصفح وإتمام التفويض، ثم انقر على التصدير مرة أخرى.',
-    pdfDocxBtnLogin: 'تسجيل الدخول',
-    pdfDocxConfirmMsg: 'رفع هذا الـ PDF إلى سحابة duoOffice وتحويله إلى Word؟',
-    pdfDocxConfirmDetail: 'يكلف التحويل 5 أرصدة. سيتم رفع الملف للمعالجة في السحابة.',
-    pdfDocxConfirmBalance: 'الرصيد الحالي: {balance} من الأرصدة.',
-    pdfDocxBtnConvert: 'متابعة',
     btnCancel: 'إلغاء',
     pdfDocxFailedMsg: 'فشل التصدير كملف Word',
-    pdfDocxNoCliMsg:
-      'تعذّر تسجيل الدخول إلى duoOffice: المكوّن المطلوب (provider) مفقود. يُرجى إعادة تثبيت التطبيق.',
     pdfDocxBusyMsg: 'يجري حاليًا تصدير إلى Word. يُرجى الانتظار حتى يكتمل.',
     menuExportDocxLocal: 'تصدير كملف Word (تحويل محلي)…',
-    menuExportDocxCloud: 'تصدير كملف Word (تحويل سحابي)…',
     menuExportPptx: 'تصدير كملف PowerPoint…',
     pdfPptxFailedMsg: 'فشل التصدير كملف PowerPoint',
     pdfPptxBusyMsg: 'هناك عملية تصدير قيد التنفيذ. يرجى الانتظار حتى تكتمل.',
@@ -1391,8 +1248,7 @@ const tMain = createI18n({
     pdfXlsxLocalSkippedDetail:
       'تعذر تحويل الصفحات {pages} إلى خلايا؛ تحتوي أوراقها على صف تنبيه بدلاً من ذلك.',
     pdfDocxLocalScannedMsg: 'تم اكتشاف مستند ممسوح ضوئيًا',
-    pdfDocxLocalScannedDetail:
-      'قام التحويل المحلي بتصدير الصفحات كصور للحفاظ على مظهرها. للحصول على نص قابل للتحرير، استخدم التحويل السحابي (مع OCR).',
+    pdfDocxLocalScannedDetail: 'قام التحويل المحلي بتصدير الصفحات كصور للحفاظ على مظهرها.',
     pdfDocxLocalDegradedMsg: 'تم تصدير بعض الصفحات كصور',
     pdfDocxLocalDegradedDetail:
       'تعذّرت إعادة بناء الصفحات {pages} بشكل موثوق، وتم تصديرها كصور لكامل الصفحة.',
@@ -1401,7 +1257,7 @@ const tMain = createI18n({
       'الصفحات {pages} كانت صورًا ممسوحة؛ تم استرداد النص عبر OCR المحلي. يُرجى مراجعة النتيجة.',
     pdfDocxLocalEncryptedDetail: 'هذا الملف PDF مشفّر وتعذّر فتحه دون كلمة المرور الصحيحة.',
     pdfDocxLocalUnsupportedEncDetail:
-      'يستخدم ملف PDF هذا تشفيرًا قائمًا على الشهادات أو تشفيرًا غير مدعوم ولا يمكن تحويله محليًا. جرّب التحويل السحابي.',
+      'يستخدم ملف PDF هذا تشفيرًا قائمًا على الشهادات أو تشفيرًا غير مدعوم ولا يمكن تحويله محليًا.',
     pdfPwdTitle: 'إدخال كلمة المرور',
     pdfPwdPrompt: 'هذا الملف PDF مشفّر. أدخل كلمة المرور لفتحه:',
     pdfPwdRetryPrompt: 'كلمة المرور غير صحيحة. حاول مرة أخرى.',
@@ -1457,22 +1313,10 @@ const tMain = createI18n({
     menuHelp: 'Ajuda',
     thirdPartyNotices: 'Avisos de software de terceiros',
     menuExportDocx: 'Exportar como Word…',
-    pdfDocxLoginMsg: 'Exportar como Word requer login no duoOffice.',
-    pdfDocxLoginDetail:
-      'Clique em “Entrar” para autorizar no navegador; depois, clique em Exportar novamente.',
-    pdfDocxBtnLogin: 'Entrar',
-    pdfDocxConfirmMsg: 'Enviar este PDF para a nuvem do duoOffice e convertê-lo em Word?',
-    pdfDocxConfirmDetail:
-      'A conversão custa 5 créditos. O arquivo será enviado para processamento na nuvem.',
-    pdfDocxConfirmBalance: 'Saldo atual: {balance} créditos.',
-    pdfDocxBtnConvert: 'Continuar',
     btnCancel: 'Cancelar',
     pdfDocxFailedMsg: 'Falha ao exportar como Word',
-    pdfDocxNoCliMsg:
-      'Não é possível iniciar sessão no duoOffice: falta um componente necessário (provider). Reinstale o aplicativo.',
     pdfDocxBusyMsg: 'Já há uma exportação para Word em andamento. Aguarde a conclusão.',
     menuExportDocxLocal: 'Exportar como Word (local)…',
-    menuExportDocxCloud: 'Exportar como Word (nuvem)…',
     menuExportPptx: 'Exportar como PowerPoint…',
     pdfPptxFailedMsg: 'Falha ao exportar como PowerPoint',
     pdfPptxBusyMsg: 'Já há uma exportação em andamento. Aguarde a conclusão.',
@@ -1488,7 +1332,7 @@ const tMain = createI18n({
       'As páginas {pages} não puderam ser convertidas em células; suas planilhas contêm uma linha de aviso.',
     pdfDocxLocalScannedMsg: 'Documento digitalizado detectado',
     pdfDocxLocalScannedDetail:
-      'A conversão local exportou as páginas como imagens para preservar a aparência. Para texto editável, use a conversão na nuvem (com OCR).',
+      'A conversão local exportou as páginas como imagens para preservar a aparência.',
     pdfDocxLocalDegradedMsg: 'Algumas páginas foram exportadas como imagens',
     pdfDocxLocalDegradedDetail:
       'As páginas {pages} não puderam ser reconstruídas de forma confiável e foram exportadas como imagens de página inteira.',
@@ -1498,7 +1342,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Este PDF está criptografado e não pôde ser aberto sem a senha correta.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Este PDF usa criptografia baseada em certificado ou outra criptografia sem suporte e não pode ser convertido localmente. Experimente a conversão na nuvem.',
+      'Este PDF usa criptografia baseada em certificado ou outra criptografia sem suporte e não pode ser convertido localmente.',
     pdfPwdTitle: 'Digitar senha',
     pdfPwdPrompt: 'Este PDF está criptografado. Digite a senha para abri-lo:',
     pdfPwdRetryPrompt: 'Senha incorreta. Tente novamente.',
@@ -1556,22 +1400,10 @@ const tMain = createI18n({
     menuHelp: 'Aiuto',
     thirdPartyNotices: 'Note sul software di terze parti',
     menuExportDocx: 'Esporta come Word…',
-    pdfDocxLoginMsg: 'Per esportare come Word è necessario accedere a duoOffice.',
-    pdfDocxLoginDetail:
-      'Fai clic su “Accedi” per autorizzare nel browser; al termine, fai di nuovo clic su Esporta.',
-    pdfDocxBtnLogin: 'Accedi',
-    pdfDocxConfirmMsg: 'Caricare questo PDF sul cloud duoOffice e convertirlo in Word?',
-    pdfDocxConfirmDetail:
-      "La conversione costa 5 crediti. Il file verrà caricato per l'elaborazione nel cloud.",
-    pdfDocxConfirmBalance: 'Saldo attuale: {balance} crediti.',
-    pdfDocxBtnConvert: 'Continua',
     btnCancel: 'Annulla',
     pdfDocxFailedMsg: 'Esportazione in Word non riuscita',
-    pdfDocxNoCliMsg:
-      "Impossibile accedere a duoOffice: manca un componente necessario (provider). Reinstallare l'app.",
     pdfDocxBusyMsg: "Un'esportazione in Word è già in corso. Attendi il completamento.",
     menuExportDocxLocal: 'Esporta come Word (locale)…',
-    menuExportDocxCloud: 'Esporta come Word (cloud)…',
     menuExportPptx: 'Esporta come PowerPoint…',
     pdfPptxFailedMsg: 'Esportazione come PowerPoint non riuscita',
     pdfPptxBusyMsg: "Un'esportazione è già in corso. Attendere che finisca.",
@@ -1587,7 +1419,7 @@ const tMain = createI18n({
       'Le pagine {pages} non hanno potuto essere convertite in celle; i loro fogli contengono una riga di avviso.',
     pdfDocxLocalScannedMsg: 'Rilevato documento scansionato',
     pdfDocxLocalScannedDetail:
-      "La conversione locale ha esportato le pagine come immagini per preservarne l'aspetto. Per testo modificabile, usa la conversione cloud (con OCR).",
+      "La conversione locale ha esportato le pagine come immagini per preservarne l'aspetto.",
     pdfDocxLocalDegradedMsg: 'Alcune pagine sono state esportate come immagini',
     pdfDocxLocalDegradedDetail:
       'Non è stato possibile ricostruire in modo affidabile le pagine {pages}; sono state esportate come immagini a pagina intera.',
@@ -1597,7 +1429,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Questo PDF è crittografato e non è stato possibile aprirlo senza la password corretta.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Questo PDF usa una crittografia basata su certificati o comunque non supportata e non può essere convertito localmente. Prova la conversione cloud.',
+      'Questo PDF usa una crittografia basata su certificati o comunque non supportata e non può essere convertito localmente.',
     pdfPwdTitle: 'Inserisci password',
     pdfPwdPrompt: 'Questo PDF è crittografato. Inserisci la password per aprirlo:',
     pdfPwdRetryPrompt: 'Password errata. Riprova.',
@@ -1655,22 +1487,10 @@ const tMain = createI18n({
     menuHelp: 'Pomoc',
     thirdPartyNotices: 'Informacje o oprogramowaniu innych firm',
     menuExportDocx: 'Eksportuj jako Word…',
-    pdfDocxLoginMsg: 'Eksport do formatu Word wymaga zalogowania do duoOffice.',
-    pdfDocxLoginDetail:
-      'Kliknij „Zaloguj się”, aby autoryzować w przeglądarce; po zakończeniu kliknij Eksportuj ponownie.',
-    pdfDocxBtnLogin: 'Zaloguj się',
-    pdfDocxConfirmMsg: 'Przesłać ten PDF do chmury duoOffice i przekonwertować na Word?',
-    pdfDocxConfirmDetail:
-      'Konwersja kosztuje 5 kredytów. Plik zostanie przesłany do przetworzenia w chmurze.',
-    pdfDocxConfirmBalance: 'Aktualne saldo: {balance} kredytów.',
-    pdfDocxBtnConvert: 'Kontynuuj',
     btnCancel: 'Anuluj',
     pdfDocxFailedMsg: 'Eksport do formatu Word nie powiódł się',
-    pdfDocxNoCliMsg:
-      'Nie można zalogować się do duoOffice: brakuje wymaganego komponentu (provider). Zainstaluj aplikację ponownie.',
     pdfDocxBusyMsg: 'Eksport do formatu Word już trwa. Poczekaj na jego zakończenie.',
     menuExportDocxLocal: 'Eksportuj jako Word (lokalnie)…',
-    menuExportDocxCloud: 'Eksportuj jako Word (chmura)…',
     menuExportPptx: 'Eksportuj jako PowerPoint…',
     pdfPptxFailedMsg: 'Eksport jako PowerPoint nie powiódł się',
     pdfPptxBusyMsg: 'Eksport już trwa. Poczekaj na jego zakończenie.',
@@ -1686,7 +1506,7 @@ const tMain = createI18n({
       'Stron {pages} nie udało się przekształcić w komórki; ich arkusze zawierają wiersz z informacją.',
     pdfDocxLocalScannedMsg: 'Wykryto zeskanowany dokument',
     pdfDocxLocalScannedDetail:
-      'Konwersja lokalna wyeksportowała strony jako obrazy, aby zachować ich wygląd. Aby uzyskać edytowalny tekst, użyj konwersji w chmurze (z OCR).',
+      'Konwersja lokalna wyeksportowała strony jako obrazy, aby zachować ich wygląd.',
     pdfDocxLocalDegradedMsg: 'Niektóre strony wyeksportowano jako obrazy',
     pdfDocxLocalDegradedDetail:
       'Stron {pages} nie udało się wiarygodnie odtworzyć; wyeksportowano je jako obrazy całych stron.',
@@ -1696,7 +1516,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Ten PDF jest zaszyfrowany i nie można go otworzyć bez prawidłowego hasła.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Ten PDF używa szyfrowania opartego na certyfikatach lub innego nieobsługiwanego szyfrowania i nie można go przekonwertować lokalnie. Wypróbuj konwersję w chmurze.',
+      'Ten PDF używa szyfrowania opartego na certyfikatach lub innego nieobsługiwanego szyfrowania i nie można go przekonwertować lokalnie.',
     pdfPwdTitle: 'Wprowadź hasło',
     pdfPwdPrompt: 'Ten PDF jest zaszyfrowany. Wprowadź hasło, aby go otworzyć:',
     pdfPwdRetryPrompt: 'Nieprawidłowe hasło. Spróbuj ponownie.',
@@ -1754,22 +1574,10 @@ const tMain = createI18n({
     menuHelp: 'Help',
     thirdPartyNotices: 'Kennisgevingen over software van derden',
     menuExportDocx: 'Exporteren als Word…',
-    pdfDocxLoginMsg: 'Exporteren als Word vereist inloggen bij duoOffice.',
-    pdfDocxLoginDetail:
-      'Klik op “Inloggen” om in de browser te autoriseren; klik daarna opnieuw op Exporteren.',
-    pdfDocxBtnLogin: 'Inloggen',
-    pdfDocxConfirmMsg: 'Deze PDF uploaden naar de duoOffice-cloud en converteren naar Word?',
-    pdfDocxConfirmDetail:
-      'De conversie kost 5 credits. Het bestand wordt geüpload voor verwerking in de cloud.',
-    pdfDocxConfirmBalance: 'Huidig saldo: {balance} credits.',
-    pdfDocxBtnConvert: 'Doorgaan',
     btnCancel: 'Annuleren',
     pdfDocxFailedMsg: 'Exporteren als Word mislukt',
-    pdfDocxNoCliMsg:
-      'Kan niet inloggen bij duoOffice: een vereist onderdeel (provider) ontbreekt. Installeer de app opnieuw.',
     pdfDocxBusyMsg: 'Er is al een Word-export bezig. Wacht tot deze is voltooid.',
     menuExportDocxLocal: 'Exporteren als Word (lokaal)…',
-    menuExportDocxCloud: 'Exporteren als Word (cloud)…',
     menuExportPptx: 'Exporteren als PowerPoint…',
     pdfPptxFailedMsg: 'Exporteren als PowerPoint mislukt',
     pdfPptxBusyMsg: 'Er is al een export bezig. Wacht tot deze is voltooid.',
@@ -1785,7 +1593,7 @@ const tMain = createI18n({
       "Pagina's {pages} konden niet naar cellen worden omgezet; hun werkbladen bevatten een meldingsrij.",
     pdfDocxLocalScannedMsg: 'Gescand document gedetecteerd',
     pdfDocxLocalScannedDetail:
-      "De lokale conversie heeft de pagina's als afbeeldingen geëxporteerd om hun uiterlijk te behouden. Gebruik voor bewerkbare tekst de cloudconversie (met OCR).",
+      "De lokale conversie heeft de pagina's als afbeeldingen geëxporteerd om hun uiterlijk te behouden.",
     pdfDocxLocalDegradedMsg: "Sommige pagina's zijn als afbeeldingen geëxporteerd",
     pdfDocxLocalDegradedDetail:
       "Pagina's {pages} konden niet betrouwbaar worden gereconstrueerd en zijn als paginagrote afbeeldingen geëxporteerd.",
@@ -1795,7 +1603,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'Deze PDF is versleuteld en kon niet worden geopend zonder het juiste wachtwoord.',
     pdfDocxLocalUnsupportedEncDetail:
-      'Deze PDF gebruikt certificaatgebaseerde of anderszins niet-ondersteunde versleuteling en kan niet lokaal worden geconverteerd. Probeer de cloudconversie.',
+      'Deze PDF gebruikt certificaatgebaseerde of anderszins niet-ondersteunde versleuteling en kan niet lokaal worden geconverteerd.',
     pdfPwdTitle: 'Wachtwoord invoeren',
     pdfPwdPrompt: 'Deze PDF is versleuteld. Voer het wachtwoord in om te openen:',
     pdfPwdRetryPrompt: 'Onjuist wachtwoord. Probeer het opnieuw.',
@@ -1853,22 +1661,10 @@ const tMain = createI18n({
     menuHelp: 'Bantuan',
     thirdPartyNotices: 'Notis Perisian Pihak Ketiga',
     menuExportDocx: 'Eksport sebagai Word…',
-    pdfDocxLoginMsg: 'Eksport sebagai Word memerlukan log masuk ke duoOffice.',
-    pdfDocxLoginDetail:
-      'Klik “Log Masuk” untuk membuka pelayar dan memberi kebenaran; selepas selesai, klik Eksport sekali lagi.',
-    pdfDocxBtnLogin: 'Log Masuk',
-    pdfDocxConfirmMsg: 'Muat naik PDF ini ke awan duoOffice untuk ditukar kepada Word?',
-    pdfDocxConfirmDetail:
-      'Penukaran ini menggunakan 5 kredit. Fail akan dimuat naik untuk diproses di awan.',
-    pdfDocxConfirmBalance: 'Baki semasa: {balance} kredit.',
-    pdfDocxBtnConvert: 'Teruskan',
     btnCancel: 'Batal',
     pdfDocxFailedMsg: 'Gagal mengeksport sebagai Word',
-    pdfDocxNoCliMsg:
-      'Tidak dapat log masuk ke duoOffice: komponen yang diperlukan (provider) tiada. Sila pasang semula aplikasi.',
     pdfDocxBusyMsg: 'Eksport ke Word sedang dijalankan. Sila tunggu sehingga selesai.',
     menuExportDocxLocal: 'Eksport sebagai Word (setempat)…',
-    menuExportDocxCloud: 'Eksport sebagai Word (awan)…',
     menuExportPptx: 'Eksport sebagai PowerPoint…',
     pdfPptxFailedMsg: 'Eksport sebagai PowerPoint gagal',
     pdfPptxBusyMsg: 'Eksport sedang berjalan. Sila tunggu sehingga selesai.',
@@ -1884,7 +1680,7 @@ const tMain = createI18n({
       'Halaman {pages} tidak dapat ditukar kepada sel; helaiannya mengandungi baris makluman.',
     pdfDocxLocalScannedMsg: 'Dokumen imbasan dikesan',
     pdfDocxLocalScannedDetail:
-      'Penukaran setempat mengeksport halaman sebagai imej untuk mengekalkan rupanya. Untuk teks boleh edit, gunakan penukaran awan (dengan OCR).',
+      'Penukaran setempat mengeksport halaman sebagai imej untuk mengekalkan rupanya.',
     pdfDocxLocalDegradedMsg: 'Sesetengah halaman dieksport sebagai imej',
     pdfDocxLocalDegradedDetail:
       'Halaman {pages} tidak dapat dibina semula dengan pasti dan telah dieksport sebagai imej halaman penuh.',
@@ -1894,7 +1690,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'PDF ini disulitkan dan tidak dapat dibuka tanpa kata laluan yang betul.',
     pdfDocxLocalUnsupportedEncDetail:
-      'PDF ini menggunakan penyulitan berasaskan sijil atau penyulitan yang tidak disokong dan tidak boleh ditukar secara setempat. Cuba penukaran awan.',
+      'PDF ini menggunakan penyulitan berasaskan sijil atau penyulitan yang tidak disokong dan tidak boleh ditukar secara setempat.',
     pdfPwdTitle: 'Masukkan Kata Laluan',
     pdfPwdPrompt: 'PDF ini disulitkan. Masukkan kata laluan untuk membukanya:',
     pdfPwdRetryPrompt: 'Kata laluan salah. Sila cuba lagi.',
@@ -1951,20 +1747,10 @@ const tMain = createI18n({
     menuHelp: 'עזרה',
     thirdPartyNotices: 'הודעות על תוכנות צד שלישי',
     menuExportDocx: 'ייצוא כ-Word…',
-    pdfDocxLoginMsg: 'ייצוא כ-Word דורש התחברות ל-duoOffice.',
-    pdfDocxLoginDetail: 'לחיצה על ”התחברות” תפתח את הדפדפן לאישור; בסיום, לחצו שוב על ייצוא.',
-    pdfDocxBtnLogin: 'התחברות',
-    pdfDocxConfirmMsg: 'להעלות את ה-PDF לענן של duoOffice ולהמיר אותו ל-Word?',
-    pdfDocxConfirmDetail: 'ההמרה עולה 5 קרדיטים. הקובץ יועלה לעיבוד בענן.',
-    pdfDocxConfirmBalance: 'יתרה נוכחית: {balance} קרדיטים.',
-    pdfDocxBtnConvert: 'המשך',
     btnCancel: 'ביטול',
     pdfDocxFailedMsg: 'הייצוא כ-Word נכשל',
-    pdfDocxNoCliMsg:
-      'לא ניתן להתחבר ל-duoOffice: רכיב נדרש (provider) חסר. נא להתקין מחדש את האפליקציה.',
     pdfDocxBusyMsg: 'ייצוא ל-Word כבר מתבצע. נא להמתין לסיומו.',
     menuExportDocxLocal: 'ייצוא כ-Word (המרה מקומית)…',
-    menuExportDocxCloud: 'ייצוא כ-Word (המרה בענן)…',
     menuExportPptx: 'ייצוא כ-PowerPoint…',
     pdfPptxFailedMsg: 'הייצוא כ-PowerPoint נכשל',
     pdfPptxBusyMsg: 'ייצוא כבר מתבצע. יש להמתין לסיומו.',
@@ -1978,8 +1764,7 @@ const tMain = createI18n({
     pdfXlsxLocalSkippedDetail:
       'לא ניתן היה להמיר את העמודים {pages} לתאים; בגיליונות שלהם נוספה שורת הודעה.',
     pdfDocxLocalScannedMsg: 'זוהה מסמך סרוק',
-    pdfDocxLocalScannedDetail:
-      'ההמרה המקומית ייצאה את העמודים כתמונות כדי לשמר את המראה. לטקסט הניתן לעריכה, השתמשו בהמרה בענן (עם OCR).',
+    pdfDocxLocalScannedDetail: 'ההמרה המקומית ייצאה את העמודים כתמונות כדי לשמר את המראה.',
     pdfDocxLocalDegradedMsg: 'חלק מהעמודים יוצאו כתמונות',
     pdfDocxLocalDegradedDetail:
       'לא ניתן היה לשחזר באופן אמין את עמודים {pages}, והם יוצאו כתמונות של עמוד מלא.',
@@ -1988,7 +1773,7 @@ const tMain = createI18n({
       'עמודים {pages} היו סריקות; הטקסט שוחזר באמצעות OCR מקומי. מומלץ להגיה את התוצאה.',
     pdfDocxLocalEncryptedDetail: 'קובץ PDF זה מוצפן ולא ניתן היה לפתוח אותו ללא הסיסמה הנכונה.',
     pdfDocxLocalUnsupportedEncDetail:
-      'קובץ PDF זה משתמש בהצפנה מבוססת אישורים או בהצפנה שאינה נתמכת ולא ניתן להמירו מקומית. נסו את ההמרה בענן.',
+      'קובץ PDF זה משתמש בהצפנה מבוססת אישורים או בהצפנה שאינה נתמכת ולא ניתן להמירו מקומית.',
     pdfPwdTitle: 'הזנת סיסמה',
     pdfPwdPrompt: 'קובץ PDF זה מוצפן. הזינו את הסיסמה כדי לפתוח אותו:',
     pdfPwdRetryPrompt: 'סיסמה שגויה. נסו שוב.',
@@ -2045,22 +1830,10 @@ const tMain = createI18n({
     menuHelp: 'सहायता',
     thirdPartyNotices: 'तृतीय-पक्ष सॉफ़्टवेयर सूचनाएँ',
     menuExportDocx: 'Word के रूप में निर्यात करें…',
-    pdfDocxLoginMsg: 'Word के रूप में निर्यात करने के लिए duoOffice में लॉगिन आवश्यक है।',
-    pdfDocxLoginDetail:
-      '“लॉगिन” पर क्लिक करने से ब्राउज़र में प्राधिकरण खुलेगा; पूरा होने पर फिर से निर्यात पर क्लिक करें।',
-    pdfDocxBtnLogin: 'लॉगिन',
-    pdfDocxConfirmMsg: 'इस PDF को duoOffice क्लाउड पर अपलोड करके Word में बदलें?',
-    pdfDocxConfirmDetail:
-      'रूपांतरण में 5 क्रेडिट लगते हैं। फ़ाइल क्लाउड में प्रोसेसिंग के लिए अपलोड की जाएगी।',
-    pdfDocxConfirmBalance: 'वर्तमान शेष: {balance} क्रेडिट।',
-    pdfDocxBtnConvert: 'जारी रखें',
     btnCancel: 'रद्द करें',
     pdfDocxFailedMsg: 'Word के रूप में निर्यात विफल रहा',
-    pdfDocxNoCliMsg:
-      'duoOffice में साइन इन नहीं किया जा सकता: आवश्यक घटक (provider) मौजूद नहीं है। कृपया ऐप को फिर से इंस्टॉल करें।',
     pdfDocxBusyMsg: 'Word के रूप में निर्यात पहले से चल रहा है। कृपया पूरा होने तक प्रतीक्षा करें।',
     menuExportDocxLocal: 'Word के रूप में निर्यात करें (लोकल)…',
-    menuExportDocxCloud: 'Word के रूप में निर्यात करें (क्लाउड)…',
     menuExportPptx: 'PowerPoint के रूप में निर्यात करें…',
     pdfPptxFailedMsg: 'PowerPoint के रूप में निर्यात विफल रहा',
     pdfPptxBusyMsg: 'एक निर्यात पहले से चल रहा है। कृपया उसके पूरा होने की प्रतीक्षा करें।',
@@ -2076,7 +1849,7 @@ const tMain = createI18n({
       'पेज {pages} सेल में परिवर्तित नहीं किए जा सके; उनकी वर्कशीट में एक सूचना पंक्ति जोड़ी गई है।',
     pdfDocxLocalScannedMsg: 'स्कैन किया गया दस्तावेज़ मिला',
     pdfDocxLocalScannedDetail:
-      'लोकल रूपांतरण ने पृष्ठों का स्वरूप बनाए रखने के लिए उन्हें छवियों के रूप में निर्यात किया। संपादन योग्य टेक्स्ट के लिए क्लाउड रूपांतरण (OCR सहित) का उपयोग करें।',
+      'लोकल रूपांतरण ने पृष्ठों का स्वरूप बनाए रखने के लिए उन्हें छवियों के रूप में निर्यात किया।',
     pdfDocxLocalDegradedMsg: 'कुछ पृष्ठ छवियों के रूप में निर्यात किए गए',
     pdfDocxLocalDegradedDetail:
       'पृष्ठ {pages} का लेआउट विश्वसनीय रूप से पुनर्निर्मित नहीं हो सका, इसलिए उन्हें पूर्ण-पृष्ठ छवियों के रूप में निर्यात किया गया।',
@@ -2086,7 +1859,7 @@ const tMain = createI18n({
     pdfDocxLocalEncryptedDetail:
       'यह PDF एन्क्रिप्टेड है और सही पासवर्ड के बिना इसे खोला नहीं जा सका।',
     pdfDocxLocalUnsupportedEncDetail:
-      'यह PDF प्रमाणपत्र-आधारित या असमर्थित एन्क्रिप्शन का उपयोग करता है और इसे स्थानीय रूप से परिवर्तित नहीं किया जा सकता। क्लाउड रूपांतरण आज़माएँ।',
+      'यह PDF प्रमाणपत्र-आधारित या असमर्थित एन्क्रिप्शन का उपयोग करता है और इसे स्थानीय रूप से परिवर्तित नहीं किया जा सकता।',
     pdfPwdTitle: 'पासवर्ड दर्ज करें',
     pdfPwdPrompt: 'यह PDF एन्क्रिप्टेड है। खोलने के लिए पासवर्ड दर्ज करें:',
     pdfPwdRetryPrompt: 'पासवर्ड गलत है। कृपया फिर से प्रयास करें।',
@@ -2144,19 +1917,10 @@ const tMain = createI18n({
     menuHelp: '說明',
     thirdPartyNotices: '第三方軟體聲明',
     menuExportDocx: '匯出為 Word…',
-    pdfDocxLoginMsg: '匯出為 Word 需要登入 duoOffice 帳號。',
-    pdfDocxLoginDetail: '點擊「登入」將開啟瀏覽器完成授權，完成後請重新點擊匯出。',
-    pdfDocxBtnLogin: '登入',
-    pdfDocxConfirmMsg: '將此 PDF 上傳到 duoOffice 雲端轉換為 Word？',
-    pdfDocxConfirmDetail: '本次轉換將消耗 5 credits，檔案將上傳至雲端處理。',
-    pdfDocxConfirmBalance: '目前餘額 {balance} credits。',
-    pdfDocxBtnConvert: '繼續',
     btnCancel: '取消',
     pdfDocxFailedMsg: '匯出為 Word 失敗',
-    pdfDocxNoCliMsg: '無法登入 duoOffice：缺少必要元件（provider），請重新安裝應用程式。',
     pdfDocxBusyMsg: '正在轉換中，請等待目前的匯出完成。',
     menuExportDocxLocal: '匯出為 Word（本機轉換）…',
-    menuExportDocxCloud: '匯出為 Word（雲端轉換）…',
     menuExportPptx: '匯出為 PPT…',
     pdfPptxFailedMsg: '匯出為 PPT 失敗',
     pdfPptxBusyMsg: '正在轉換中，請等待目前匯出完成。',
@@ -2168,16 +1932,14 @@ const tMain = createI18n({
     pdfXlsxLocalSkippedMsg: '部分頁面未轉換為儲存格',
     pdfXlsxLocalSkippedDetail: '第 {pages} 頁無法轉換為儲存格，對應工作表中已寫入提示列。',
     pdfDocxLocalScannedMsg: '偵測到掃描文件',
-    pdfDocxLocalScannedDetail:
-      '本機轉換已將各頁以圖片方式保真匯出。如需可編輯的文字，請使用雲端轉換（支援 OCR）。',
+    pdfDocxLocalScannedDetail: '本機轉換已將各頁以圖片方式保真匯出。',
     pdfDocxLocalDegradedMsg: '部分頁面已以圖片匯出',
     pdfDocxLocalDegradedDetail: '第 {pages} 頁的版面無法可靠重建，已以整頁圖片保真匯出。',
     pdfDocxLocalOcrMsg: '掃描頁已轉換為可編輯文字',
     pdfDocxLocalOcrDetail:
       '第 {pages} 頁為掃描件，已透過本機 OCR 辨識為可編輯文字，建議校對辨識結果。',
     pdfDocxLocalEncryptedDetail: '此 PDF 已加密，未提供正確的密碼，無法轉換。',
-    pdfDocxLocalUnsupportedEncDetail:
-      '該檔案使用憑證加密或不支援的加密方式，無法在本機轉換，可嘗試雲端轉換。',
+    pdfDocxLocalUnsupportedEncDetail: '該檔案使用憑證加密或不支援的加密方式，無法在本機轉換。',
     pdfPwdTitle: '輸入密碼',
     pdfPwdPrompt: '此 PDF 已加密，請輸入開啟密碼：',
     pdfPwdRetryPrompt: '密碼不正確，請重試。',
@@ -2263,7 +2025,8 @@ function createShellWindow(): void {
     height: 900,
     minWidth: 980,
     minHeight: 600,
-    title: 'GenOffice',
+    title: 'duoOffice',
+    show: false,
     // vibrancy: editor modules punch translucent regions (e.g. the slides
     // thumbnail pane) through to the desktop
     ...(process.platform === 'darwin'
@@ -2277,6 +2040,7 @@ function createShellWindow(): void {
     },
   })
   shellWindow = win
+  win.once('ready-to-show', () => handoffSplashTo(win))
   // dragging the window by the tab strip's blank (draggable) area produces no
   // DOM event anywhere — will-move is the only signal to dismiss popovers
   win.on('will-move', () => broadcastChromePressed())
@@ -2935,8 +2699,8 @@ function registerHomeIpc(): void {
     return picked
   })
 
-  ipcMain.handle(HOME_CHANNELS.openGenTeam, () => {
-    shell.openExternal(GITHUB_REPO_URL).catch(() => {
+  ipcMain.handle(HOME_CHANNELS.openCommunity, () => {
+    shell.openExternal(COMMUNITY_URL).catch(() => {
       // no browser handler available; nothing actionable for the user here
     })
   })
@@ -2957,8 +2721,8 @@ function registerHomeIpc(): void {
     const state = readStarPrompt()
     const docOpens = state.docOpens ?? 0
     // dev preview of the card without waiting out the value thresholds
-    // (same pattern as GENOFFICE_FAKE_UPDATE); nothing is recorded
-    if (!app.isPackaged && process.env.GENOFFICE_FORCE_STAR_PROMPT) return { show: true, docOpens }
+    // (same pattern as DUOOFFICE_FAKE_UPDATE); nothing is recorded
+    if (!app.isPackaged && process.env.DUOOFFICE_FORCE_STAR_PROMPT) return { show: true, docOpens }
     const grant = (): StarPromptShow => {
       writeStarPrompt(withShown(state, now))
       starPromptSessionGrant = { show: true, docOpens }
@@ -3397,7 +3161,7 @@ async function exportPdfAsDocxLocal(): Promise<void> {
       filters: [{ name: tm('filterWord'), extensions: ['docx'] }],
     })
     if (picked.canceled || !picked.filePath) return
-    // same stale-tab handling as the cloud export (see exportPdfAsDocx)
+    // Close a stale destination tab before replacing the exported file.
     const staleTabId = tabManager?.findDocsTabByPath(picked.filePath)
     if (staleTabId) {
       await tabManager?.closeTab(staleTabId)
@@ -3438,8 +3202,7 @@ async function exportPdfAsDocxLocal(): Promise<void> {
     if (result === null) return
     writeFileSync(picked.filePath, result.docx)
 
-    // degrade transparency (plan §7.6 dual-track split): whole scan → point
-    // to the cloud/OCR flow; individual image-fallback pages → name them;
+    // Degrade transparency: individual image-fallback pages are named;
     // OCR-recovered scans ('ocr') are SUCCESSES — announce the recovery (the
     // user should proofread machine-read text), never the image-export notice
     const ocrPages = result.pageResults.filter((r) => r.status === 'ocr').map((r) => r.page)
@@ -3904,6 +3667,7 @@ app.whenReady().then(async () => {
     }
   }
 
+  createSplashWindow()
   proxyBootstrap = installMainProcessProxy()
   app.setAccessibilitySupportEnabled(true)
   // Settle the shared uiLang from saved settings BEFORE any tab renderer can
@@ -3956,6 +3720,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => {
+  closeSplashWindow()
   // No close prompt may fall through to "Save" during shutdown
   markSheetsShuttingDown()
   stopSheetsSidecar()

@@ -96,8 +96,8 @@ import {
   spliceCharColors,
 } from './color-runs'
 import type { CharStyle } from './color-runs'
-import { platformShortcuts } from '@genoffice/i18n'
-import { Dropdown, useDismissablePopover } from '@genoffice/ui'
+import { platformShortcuts } from '@duooffice/i18n'
+import { Dropdown, useDismissablePopover } from '@duooffice/ui'
 import { useI18n } from './i18n/locale'
 import { useAutosave } from './useAutosave'
 import type {
@@ -312,10 +312,10 @@ export default function App() {
   }
   // Persisted so a closed AI panel stays closed on next launch (docs/slides parity)
   const [aiCollapsed, setAiCollapsed] = useState(
-    () => localStorage.getItem('genoffice-pdf-show-ai') === '0',
+    () => localStorage.getItem('duooffice-pdf-show-ai') === '0',
   )
   useEffect(() => {
-    localStorage.setItem('genoffice-pdf-show-ai', aiCollapsed ? '0' : '1')
+    localStorage.setItem('duooffice-pdf-show-ai', aiCollapsed ? '0' : '1')
   }, [aiCollapsed])
   /** One-shot prompt pushed by the ribbon AI buttons; the panel auto-runs it (docs preset pattern) */
   const [aiPreset, setAiPreset] = useState<{ text: string; nonce: number } | null>(null)

@@ -52,3 +52,7 @@ La splash screen se implementará en la shell de Electron como una ventana peque
 - Los avisos de licencia y atribución requeridos se conservan y distinguen claramente de la identidad duoOffice.
 - La splash screen aparece en el arranque, no bloquea el inicio y desaparece al estar operativa la ventana principal.
 - Las asociaciones de `.docx`, `.xlsx`, `.pptx`, `.pdf` y Markdown identifican duoOffice de forma coherente.
+
+## Estado a 2026-09-01
+
+Implementación y validación macOS completadas. Los activos oficiales son el PNG de icono y el SVG de firma proporcionados por el propietario del proyecto; no se han creado variantes conceptuales ni cambios de diseño. Las validaciones nativas de Windows y Linux se realizarán en sus respectivos entornos de CI.

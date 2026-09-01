@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { IpcRendererEvent } from 'electron'
-import type { RenderSlide } from '@genoffice/pptx-render'
-import type { ProjectApi } from '@genoffice/project-store'
-import { installDropOpenBridge } from '@genoffice/electron-utils/drop-open'
+import type { RenderSlide } from '@duooffice/pptx-render'
+import type { ProjectApi } from '@duooffice/project-store'
+import { installDropOpenBridge } from '@duooffice/electron-utils/drop-open'
 import type {
   AddChartOp,
   AddElementOp,

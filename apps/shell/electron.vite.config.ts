@@ -30,6 +30,8 @@ export default defineConfig({
           update: resolve(__dirname, 'src/renderer/update.html'),
           // PDF password prompt window (see src/main/pdf-password-dialog.ts)
           'pdf-password': resolve(__dirname, 'src/renderer/pdf-password.html'),
+          // local, network-free startup splash
+          splash: resolve(__dirname, 'src/renderer/splash.html'),
         },
       },
     },

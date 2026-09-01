@@ -5,8 +5,8 @@ import {
   IPC_STREAM_SILENCE_TIMEOUT_MS,
   type AgentImage,
   type ToolDisplay,
-} from '@genoffice/agent-core'
-import type { RenderSlide } from '@genoffice/pptx-render'
+} from '@duooffice/agent-core'
+import type { RenderSlide } from '@duooffice/pptx-render'
 import type { AiSettings, AttachmentAddResult, AttachmentMeta } from '../../shared/ipc'
 import { ATTACHMENT_IMAGE_EXTS } from '../../shared/ipc'
 import {
@@ -37,7 +37,7 @@ import {
   settingsSupportVision,
 } from './slide-qc'
 import { useI18n, t as tGlobal, aiLangDirective, type TFunc } from '../i18n/locale'
-import { Markdown } from '@genoffice/ui'
+import { Markdown } from '@duooffice/ui'
 import { AiSparkMark } from '../components/icons'
 import sendEnterOn from '../assets/send-enter-on.png'
 import sendEnterOff from '../assets/send-enter-off.png'

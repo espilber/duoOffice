@@ -1,40 +1,38 @@
-# Especificación: Desacoplamiento de GenSpark
+# Especificación: Rebranding técnico y splash screen
 
 ## Objetivo
 
-Eliminar de duoOffice la integración con GenSpark y su autenticación, manteniendo disponibles los demás proveedores de IA y su configuración.
+Convertir la aplicación importada en duoOffice de extremo a extremo, sin identidad activa de GenOffice en la interfaz, el binario, las rutas de usuario, los paquetes internos o la distribución, y añadir una splash screen segura que cubra el arranque real.
 
 ## Requisitos
 
-- [x] Localizar y eliminar la integración del proveedor GenSpark.
-- [x] Eliminar el inicio de sesión, credenciales y flujos de cuenta vinculados a GenSpark.
-- [x] Mantener el resto de proveedores y sus opciones de configuración.
-- [x] Identificar los mecanismos actuales de envío de estadísticas y definir una política para duoOffice.
-- [x] Identificar la comprobación de actualizaciones y definir dónde y cómo realizarla.
-- [x] Eliminar las rutas de ejecución de GenSpark —autenticación, dependencias, credenciales y red— además de sus elementos visuales.
-- [x] Separar el registro de proveedores y herramientas de IA para que los cambios futuros de GenOffice se puedan integrar sin reactivar GenSpark.
+- [x] Sustituir nombre, wordmark, textos, títulos, menús, enlaces y metadatos visibles por duoOffice.
+- [x] Cambiar identificadores de aplicación, ejecutables, artefactos, asociaciones, caché de actualización y rutas predeterminadas a duoOffice.
+- [x] Renombrar el namespace interno `@genoffice/*` a `@duooffice/*` y las variables de entorno activas a `DUOOFFICE_*`.
+- [x] No migrar automáticamente credenciales ni datos de la aplicación anterior; duoOffice usará un directorio de usuario independiente.
+- [x] Implementar una splash screen local, sin marco, sin Node ni red, visible hasta que la ventana principal esté lista.
+- [x] Aplicar un tiempo mínimo para evitar parpadeo y un timeout máximo para que la splash nunca bloquee el inicio.
+- [x] Conservar las atribuciones legales de GenOffice/Mainfunc únicamente en avisos de procedencia y licencias.
+- [x] Añadir una auditoría automática que impida reintroducir identidad activa de GenOffice en fuentes distribuibles y configuración de release.
 
-## Criterios de Aceptación
+## Criterios de aceptación
 
-- Dado un usuario de duoOffice, cuando configure un proveedor distinto de GenSpark, entonces podrá utilizarlo con su configuración existente.
-- Dado un usuario de duoOffice, cuando inicie la aplicación, entonces no se le solicitará iniciar sesión en GenSpark.
-- Dado el código y la configuración de duoOffice, cuando se auditen las dependencias de GenSpark, entonces no quedarán integraciones obligatorias ni referencias activas no justificadas.
-- Dado un binario de duoOffice, cuando se inicie o se use cualquier proveedor disponible, entonces no se cargará `@genspark/cli`, no se leerán credenciales de Genspark ni se harán solicitudes a sus dominios.
-- Dado el sistema de estadísticas y actualizaciones, cuando se documente su diseño, entonces quedarán definidos su mecanismo, destino, control del usuario y política de privacidad.
+- Dado un instalable de duoOffice, cuando se inspeccionen su nombre, bundle ID, ejecutable, artefactos, asociaciones y feed, entonces todos usarán identidad duoOffice.
+- Dada una primera ejecución, cuando arranque la aplicación, entonces aparecerá la splash y desaparecerá solo cuando la ventana principal esté lista, respetando mínimo y timeout.
+- Dado un fallo o lentitud de carga, cuando venza el timeout de splash, entonces la ventana principal podrá mostrarse y el proceso no quedará bloqueado.
+- Dado el monorepo, cuando se instalen dependencias y se ejecuten tipos, pruebas y builds, entonces el namespace `@duooffice/*` resolverá en todos los workspaces.
+- Dadas las fuentes distribuibles, cuando se ejecute la auditoría de marca, entonces no habrá identidad activa de GenOffice o Genspark fuera de las excepciones legales documentadas.
+- Dada una instalación previa de GenOffice, cuando se instale duoOffice, entonces sus credenciales y preferencias no se copiarán automáticamente al nuevo directorio de usuario.
 
 ## Estado
 
-- Especificación: ✅ Completada
-- Implementación: ✅ Proveedor privado, telemetría y destinos privados eliminados; actualizaciones fijadas a GitHub Releases de duoOffice
-- Validación: ✅ Tipos, unitarias, builds, auditorías, E2E y paquete macOS superados; Windows y Linux quedan para su CI nativa
+- Especificación: ✅ Aprobada
+- Implementación: ✅ Completada
+- Validación: ✅ Superada en macOS arm64
 
 ## Notas
 
-- GenOffice se utilizará como fuente de referencia para futuras correcciones y funciones.
-- Las actualizaciones de GenOffice se evaluarán individualmente antes de incorporarlas.
-- El alcance exacto de la limpieza del repositorio se definirá antes de borrar contenido.
-- Tauri está descartado. duoOffice conservará Electron como plataforma de escritorio.
-- El alcance y los criterios del rebranding se documentan en `REBRANDING.md`; la splash screen forma parte de ese trabajo.
-- Ocultar controles de GenSpark no es una eliminación válida: dejaría autenticación, credenciales y rutas de red dentro de la distribución. Para facilitar las actualizaciones desde GenOffice, se aislará el registro de proveedores y herramientas; el código eliminado podrá conservarse únicamente en una rama de seguimiento upstream, no en el binario de duoOffice.
-- La evidencia y el inventario de la implementación están en `PRIVATE-AI-AUDIT.md`.
-- La política aprobada de privacidad y actualizaciones está en `PRIVACY-AND-UPDATES.md`.
+- La identidad visual aprobada por el propietario del proyecto usa el icono cuadrado multicolor `icono_douoffice.png` y el wordmark vectorial `duooffice-logo.svg`, recibidos el 1 de septiembre de 2026. Deben integrarse sin reinterpretar su diseño.
+- La migración de documentos recientes o proyectos locales podrá diseñarse después como importación explícita y selectiva.
+- Las menciones de GenOffice permitidas quedarán limitadas a `NOTICE`, licencias heredadas y documentación histórica bajo `/docs`.
+- Windows y Linux requieren validación nativa posterior; el paquete macOS sirve como validación completa local del bloque.

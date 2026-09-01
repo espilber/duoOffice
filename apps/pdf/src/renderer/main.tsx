@@ -1,14 +1,14 @@
 import { createRoot } from 'react-dom/client'
-import { htmlLang, type Lang } from '@genoffice/i18n'
+import { htmlLang, type Lang } from '@duooffice/i18n'
 import App from './App'
 import { LocaleProvider } from './i18n/locale'
 import type { UiTheme } from '../shared/ipc'
-import '@genoffice/ui/tokens.css'
-import '@genoffice/ui/screentip.css'
-import '@genoffice/ui/color-picker.css'
-import '@genoffice/ui/dropdown.css'
+import '@duooffice/ui/tokens.css'
+import '@duooffice/ui/screentip.css'
+import '@duooffice/ui/color-picker.css'
+import '@duooffice/ui/dropdown.css'
 import './styles.css'
-import { installScreenTips } from '@genoffice/ui'
+import { installScreenTips } from '@duooffice/ui'
 
 installScreenTips()
 

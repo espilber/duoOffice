@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Dropdown } from '@genoffice/ui'
-import type { AiSettings } from '@genoffice/ai-provider'
+import { Dropdown } from '@duooffice/ui'
+import type { AiSettings } from '@duooffice/ai-provider'
 import { useI18n } from './locale'
 import type { StringKey, TFunc } from './locale'
 import type { AiCatalogEntry, UiTheme } from '../../shared/home-api'
@@ -225,7 +225,6 @@ function AiModelPane({ t }: { t: TFunc }) {
           onPick={(v) => selectProvider(v as AiSettings['provider'])}
         />
       </div>
-      <div className="set-field-desc set-ai-note">{t('setAiByokNote')}</div>
       <div className="set-field">
         <div className="set-field-text">
           <label className="set-field-label">{t('setAiModelId')}</label>

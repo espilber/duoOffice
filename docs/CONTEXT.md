@@ -27,4 +27,6 @@ El desacoplamiento técnico del proveedor privado está implementado en `feature
 
 La fase de independencia y privacidad está completada. Además del desacoplamiento privado, se eliminó la telemetría heredada y se fijaron las actualizaciones al repositorio público de duoOffice. El paquete macOS arm64 y su feed embebido están validados; Windows y Linux se validarán en CI nativa durante la fase de distribución.
 
-El siguiente bloque es el rebranding técnico completo y la experiencia de arranque, incluida la splash screen.
+El rebranding técnico y la experiencia de arranque están completados en `feature/rebrand-duooffice`: identidad visible y técnica duoOffice, recursos visuales aprobados, namespace `@duooffice/*`, rutas independientes, splash segura y paquete macOS arm64 validados. La auditoría `check:brand-boundaries` evita regresiones de marca y protege por hash los dos recursos visuales aprobados.
+
+El siguiente bloque será el refinamiento de interfaz. Cualquier decisión visual sobre menús, botoneras, paleta o temas se consultará previamente con el propietario del proyecto; no se diseñarán variantes de identidad sin su aprobación.

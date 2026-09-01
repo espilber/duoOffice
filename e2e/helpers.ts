@@ -2,7 +2,7 @@
  * Shared launcher for Electron E2E tests.
  *
  * Each test boots the built shell (`apps/shell/out`) against a scratch
- * userData dir (via GENOFFICE_USER_DATA) so runs never touch real settings
+ * userData dir (via DUOOFFICE_USER_DATA) so runs never touch real settings
  * and never collide with a running install's single-instance lock.
  * Build first: `npm run build:all`.
  */
@@ -21,7 +21,7 @@ const SHELL_MAIN = join(SHELL_DIR, 'out/main/index.js')
 interface LaunchOptions {
   /** reuse a previous scratch dir to simulate a second launch */
   userDataDir?: string
-  /** UI language override (GENOFFICE_LANG); defaults to English for stable assertions */
+  /** UI language override (DUOOFFICE_LANG); defaults to English for stable assertions */
   lang?: string
   /** pre-seed app-settings.json with onboardingSeen=true to start at the home screen */
   onboardingSeen?: boolean
@@ -29,19 +29,26 @@ interface LaunchOptions {
   videoDir: string
   /** absolute document path passed as argv, opened in an editor tab on launch */
   openFile?: string
+  /** keep and inspect the transient splash; disabled for ordinary editor tests */
+  observeSplash?: boolean
 }
 
 export interface LaunchedApp {
   app: ElectronApplication
   page: Page
   userDataDir: string
+  splash: {
+    observed: boolean
+    durationMs: number
+    secure: boolean
+  }
 }
 
 export async function launchShell(options: LaunchOptions): Promise<LaunchedApp> {
   if (!existsSync(SHELL_MAIN)) {
     throw new Error(`Missing build output at ${SHELL_MAIN} — run \`npm run build:all\` first`)
   }
-  const userDataDir = options.userDataDir ?? (await mkdtemp(join(tmpdir(), 'genoffice-e2e-')))
+  const userDataDir = options.userDataDir ?? (await mkdtemp(join(tmpdir(), 'duooffice-e2e-')))
   if (options.onboardingSeen) {
     await writeFile(
       join(userDataDir, 'app-settings.json'),
@@ -62,13 +69,15 @@ export async function launchShell(options: LaunchOptions): Promise<LaunchedApp> 
   if (process.platform === 'linux') args.push('--no-sandbox', '--disable-gpu')
   args.push(SHELL_DIR)
   if (options.openFile) args.push(options.openFile)
+  const launchedAt = Date.now()
   const app = await electron.launch({
     executablePath,
     args,
     env: {
       ...hostEnv,
-      GENOFFICE_USER_DATA: userDataDir,
-      GENOFFICE_LANG: options.lang ?? 'en',
+      DUOOFFICE_USER_DATA: userDataDir,
+      DUOOFFICE_LANG: options.lang ?? 'en',
+      ...(options.observeSplash ? { DUOOFFICE_SPLASH_MIN_VISIBLE_MS: '2500' } : {}),
       ...(process.platform === 'linux' ? { ELECTRON_DISABLE_SANDBOX: '1' } : {}),
     },
     // Playwright's Electron screencast wedges the page CDP session on Linux
@@ -82,9 +91,76 @@ export async function launchShell(options: LaunchOptions): Promise<LaunchedApp> 
             size: { width: 1280, height: 800 },
           },
   })
-  const page = await app.firstWindow()
+  let splashObserved = false
+  let splashSecure = false
+  const splashDeadline = Date.now() + 5_000
+  while (options.observeSplash && Date.now() < splashDeadline && !splashObserved) {
+    const details = await app
+      .evaluate(({ BrowserWindow }) => {
+        const splash = BrowserWindow.getAllWindows().find((window) =>
+          /\/renderer\/splash\.html(?:[?#]|$)/.test(window.webContents.getURL()),
+        )
+        if (!splash) return null
+        const preferences = splash.webContents.getLastWebPreferences()
+        return {
+          secure:
+            preferences.contextIsolation === true &&
+            preferences.nodeIntegration === false &&
+            preferences.sandbox === true &&
+            !preferences.preload,
+        }
+      })
+      .catch(() => null)
+    splashObserved = details !== null
+    splashSecure = details?.secure === true
+    if (!splashObserved) await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
+  }
+  const page = await waitForShellWindow(app)
   await waitForDocumentReady(app, page)
-  return { app, page, userDataDir }
+  if (options.observeSplash) await waitForSplashHandoff(app)
+  return {
+    app,
+    page,
+    userDataDir,
+    splash: {
+      observed: splashObserved,
+      durationMs: Date.now() - launchedAt,
+      secure: splashSecure,
+    },
+  }
+}
+
+async function waitForSplashHandoff(app: ElectronApplication, timeoutMs = 10_000): Promise<void> {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    const handedOff = await app
+      .evaluate(({ BrowserWindow }) => {
+        const windows = BrowserWindow.getAllWindows()
+        const splash = windows.some((window) =>
+          /\/renderer\/splash\.html(?:[?#]|$)/.test(window.webContents.getURL()),
+        )
+        const shell = windows.find((window) =>
+          /\/renderer\/index\.html(?:[?#]|$)/.test(window.webContents.getURL()),
+        )
+        return !splash && shell?.isVisible() === true
+      })
+      .catch(() => false)
+    if (handedOff) return
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 25))
+  }
+  throw new Error('Splash screen did not hand off to the visible duoOffice shell')
+}
+
+async function waitForShellWindow(app: ElectronApplication, timeoutMs = 30_000): Promise<Page> {
+  const deadline = Date.now() + timeoutMs
+  while (Date.now() < deadline) {
+    const page = app
+      .windows()
+      .find((candidate) => /\/renderer\/index\.html(?:[?#]|$)/.test(candidate.url()))
+    if (page) return page
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 50))
+  }
+  throw new Error('duoOffice shell window did not appear after the splash screen')
 }
 
 /**

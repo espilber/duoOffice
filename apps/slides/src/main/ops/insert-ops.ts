@@ -18,7 +18,7 @@ import {
   type NewChartOptions,
   type NewElementOptions,
   type Paragraph,
-} from '@genoffice/pptx-engine'
+} from '@duooffice/pptx-engine'
 import {
   coerceBytes,
   dataUrlExt,

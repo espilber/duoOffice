@@ -12,7 +12,7 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import type { Editor } from '@tiptap/core'
 import { DOMParser as PmDOMParser, type Mark as PmMark } from '@tiptap/pm/model'
 import { NodeSelection } from '@tiptap/pm/state'
-import { Dropdown } from '@genoffice/ui'
+import { Dropdown } from '@duooffice/ui'
 import { markdownPasteHtml } from './editor/markdown-paste'
 import {
   BLANK_BULLET_NUM_ID,
@@ -34,7 +34,7 @@ import {
   type StyleUpsert,
   type ThemeColors,
   type ThemeFonts,
-} from '@genoffice/docx-engine'
+} from '@duooffice/docx-engine'
 import type { AiDocContent, AiSettings, OpenDocxResult } from '../shared/ipc'
 import { AI_PROVIDERS } from '../shared/ipc'
 import { AiPanel, AI_REVISION_AUTHOR } from './ai/AiPanel'
@@ -970,7 +970,7 @@ export function App() {
 
   // window title follows the document, so the OS window list and Switch Window show file names
   useEffect(() => {
-    document.title = doc ? doc.fileName : 'GenOffice Docs'
+    document.title = doc ? doc.fileName : 'duoOffice Docs'
   }, [doc])
 
   useEffect(() => window.desktop.onTeardown?.(() => setTornDown(true)), [])
