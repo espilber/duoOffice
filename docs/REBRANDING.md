@@ -55,4 +55,4 @@ La splash screen se implementará en la shell de Electron como una ventana peque
 
 ## Estado a 2026-09-01
 
-Implementación y validación macOS completadas. Los activos oficiales son el PNG de icono y el SVG de firma proporcionados por el propietario del proyecto; no se han creado variantes conceptuales ni cambios de diseño. Las validaciones nativas de Windows y Linux se realizarán en sus respectivos entornos de CI.
+Implementación y validación macOS completadas. Los activos oficiales son el PNG de icono y el SVG de firma proporcionados por el propietario del proyecto; no se han creado variantes conceptuales. La composición visual actual de la splash es provisional: queda pendiente realizar las modificaciones de diseño indicadas por el propietario y recibir su aprobación final. Las validaciones nativas de Windows y Linux se realizarán en sus respectivos entornos de CI.

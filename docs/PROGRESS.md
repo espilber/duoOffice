@@ -44,6 +44,7 @@
 - Validación superada: formato, typecheck global, auditorías de marca/privacidad/proveedor privado, pruebas unitarias de todos los workspaces, build completo y 39 E2E ejecutables; 5 regresiones visuales permanecen omitidas por configuración.
 - Generados `duoOffice-0.8.0-arm64.dmg` y `duoOffice-0.8.0-arm64-mac.zip` sin firma/notarización. El paquete declara `duoOffice`, `com.duooffice.app`, ejecutable propio, icono aprobado y fuentes renombradas.
 - Windows y Linux quedan pendientes de validación nativa en CI. El siguiente bloque será el refinamiento de interfaz, siempre consultando antes las decisiones de diseño.
+- Decisión posterior: la composición visual actual de la splash se registra como provisional. Su implementación técnica permanece validada, pero el diseño definitivo queda pendiente de las modificaciones solicitadas y de la aprobación final del propietario del proyecto.
 
 ## Referencias
 

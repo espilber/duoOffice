@@ -33,6 +33,7 @@ Convertir la aplicación importada en duoOffice de extremo a extremo, sin identi
 ## Notas
 
 - La identidad visual aprobada por el propietario del proyecto usa el icono cuadrado multicolor `icono_douoffice.png` y el wordmark vectorial `duooffice-logo.svg`, recibidos el 1 de septiembre de 2026. Deben integrarse sin reinterpretar su diseño.
+- La splash está validada técnicamente, pero su composición visual actual es provisional. Queda pendiente aplicar las modificaciones de diseño que indique el propietario del proyecto y obtener su aprobación final; no se considerará diseño definitivo hasta entonces.
 - La migración de documentos recientes o proyectos locales podrá diseñarse después como importación explícita y selectiva.
 - Las menciones de GenOffice permitidas quedarán limitadas a `NOTICE`, licencias heredadas y documentación histórica bajo `/docs`.
 - Windows y Linux requieren validación nativa posterior; el paquete macOS sirve como validación completa local del bloque.
